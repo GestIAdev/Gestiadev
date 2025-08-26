@@ -29,6 +29,26 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "GestIAdev - Forjamos el Futuro del Software",
   description: "Combinamos la colaboración radical con IA y una ingeniería de élite para construir herramientas un orden de magnitud más eficientes, seguras e inteligentes.",
+  openGraph: {
+    title: 'GestIAdev - Forjamos el Futuro del Software',
+    description: 'Combinamos la colaboración radical con IA y una ingeniería de élite para construir herramientas un orden de magnitud más eficientes, seguras e inteligentes.',
+    url: 'https://gest-i-adev.vercel.app/',
+    siteName: 'GestIAdev',
+    images: [
+      {
+        url: 'https://gest-i-adev.vercel.app/public/file.svg',
+        alt: 'GestIAdev',
+      },
+    ],
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GestIAdev - Forjamos el Futuro del Software',
+    description: 'Combinamos la colaboración radical con IA y una ingeniería de élite para construir herramientas un orden de magnitud más eficientes, seguras e inteligentes.',
+    images: ['https://gest-i-adev.vercel.app/public/file.svg'],
+  },
 };
 
 export default function RootLayout({
