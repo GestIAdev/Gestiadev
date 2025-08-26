@@ -1,0 +1,29 @@
+# Root .gitignore for GestIAdev
+# Ignore markdown docs (internal planning, not for repo)
+*.md
+
+# Node / JS
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+
+# Next.js build
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Env files
+.env*
