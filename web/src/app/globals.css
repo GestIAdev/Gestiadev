@@ -1,0 +1,181 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-mono: var(--font-ibm-plex-mono);
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-space: var(--font-space-mono);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .bg-grid {
+    background-size: 40px 40px;
+    background-image: radial-gradient(#333333 1px, transparent 0);
+    opacity: 0.5;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 240 240 240;
+    --foreground: 10 10 26;
+    --accent: 152 242 169;
+  }
+
+  body {
+    background-color: #0A0A1A;
+    color: #EAEAEA;
+    /* reemplazamos el grid por un patrón artístico */
+  background-image: none;
+  }
+  /* Artistic background: layered SVG with circles, arcs and subtle gradients */
+  /* .bg-artistic is defined in the components layer below so Tailwind emits it correctly */
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-ibm-plex-mono);
+    font-weight: 700;
+  }
+
+  p {
+    font-family: var(--font-ibm-plex-sans);
+  }
+
+  code {
+    font-family: var(--font-space-mono);
+  }
+}
+
+@layer components {
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .bg-artistic {
+    background-color: #0A0A1A;
+      /* simplified artistic background: subtle tint layers and the new spheres SVG */
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.08)),
+        radial-gradient(circle at 10% 20%, rgba(0,242,169,0.05) 0px, transparent 120px),
+        radial-gradient(circle at 80% 80%, rgba(234,234,234,0.02) 0px, transparent 140px),
+        url('/bg-spheres.svg');
+      background-size: cover, cover, cover, cover;
+      background-position: center, center, center, center;
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    mix-blend-mode: normal;
+  }
+
+  /* Subtle noise background helper (data-URI SVG using feTurbulence) */
+  .bg-noise {
+    background-color: #0A0A1A;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'><filter id='n'><feTurbulence baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05' fill='%23000000'/></svg>");
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-size: auto;
+  /* keep it subtle */
+  opacity: 1;
+  }
+
+  /* Simplified: use the SVG starfield asset for robustness and remove complex CSS artifacts */
+  .bg-starfield-svg, .bg-starfield, .bg-dots {
+    background-color: #0A0A1A;
+    background-image: url('/starfield-background.svg');
+    background-repeat: repeat;
+    background-attachment: fixed;
+  background-size: 500px; /* adjust density */
+  }
+
+  .tech-card {
+    position: relative;
+    padding: 1.5rem;
+    border: 1px solid #333333;
+    border-radius: 0.375rem;
+    transition: all 300ms;
+  }
+
+  .tech-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid #00F2A9;
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+
+  .tech-card:hover::before {
+    opacity: 1;
+    animation: draw-border 1s forwards;
+  }
+
+  .glitch-hover {
+    position: relative;
+    transition: transform;
+  }
+
+  .glitch-hover:hover {
+    animation: glitch 1s infinite;
+  }
+}
+
+@keyframes glitch {
+  0%, 100% { 
+    transform: translate(0);
+    text-shadow: none;
+  }
+  33% { 
+    transform: translate(-2px, 1px);
+    text-shadow: -2px 0 #00F2A9, 2px 2px #ff00ff;
+  }
+  66% { 
+    transform: translate(2px, -1px);
+    text-shadow: 2px 0 #00F2A9, -2px -2px #ff00ff;
+  }
+}
+
+@keyframes draw-border {
+  0% { clip-path: inset(0 100% 100% 0); }
+  50% { clip-path: inset(0 0 100% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.glitch-hover {
+  position: relative;
+  transition: text-shadow 0.3s ease;
+}
+
+.glitch-hover:hover {
+  animation: glitch 0.9s infinite;
+}
+
+.hero-text {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  animation: text-scramble 2s forwards;
+}
+
+@keyframes text-scramble {
+  0% { filter: blur(1px); opacity: 0; }
+  100% { filter: blur(0); opacity: 1; }
+}
