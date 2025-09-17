@@ -1,0 +1,8 @@
+{
+  "pages_build_output_dir": "web/out",
+  "build_command": "npm run cf:build",
+  "dev_command": "npm run cf:dev",
+  "install_command": "npm install",
+  "root_dir": "web",
+  "framework": "nextjs"
+}

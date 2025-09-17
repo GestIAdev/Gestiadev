@@ -1,5 +1,40 @@
 {
+  "name": "gestiadev",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GestIAdev - Forjamos el Futuro del Software",
+  "main": "web/index.js",
+  "scripts": {
+    "dev": "cd web && npm run dev",
+    "build": "cd web && npm run build",
+    "start": "cd web && npm run start",
+    "lint": "cd web && npm run lint",
+    "export": "cd web && npm run export",
+    "cf:build": "cd web && npm run build",
+    "cf:dev": "cd web && npm run dev"
+  },
+  "workspaces": [
+    "web"
+  ],
   "dependencies": {
-    "framer-motion": "^12.23.12"
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
