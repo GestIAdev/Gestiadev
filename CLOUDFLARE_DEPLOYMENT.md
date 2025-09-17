@@ -60,8 +60,44 @@ npm run cf:dev      # Desarrollo con configuración CF
 - ✅ **Archivos estáticos** exportados
 - ✅ **SEO optimizado**
 
-### Despliegue Automático
-Cada push a la rama `main` activará automáticamente un nuevo despliegue en Cloudflare Pages.
+### Sincronización con Git
+
+**Cloudflare Pages NO sincroniza automáticamente** como Vercel. Tienes estas opciones:
+
+#### Opción 1: Despliegues Manuales (Actual)
+- Ve al [Cloudflare Pages Dashboard](https://dash.cloudflare.com/pages)
+- Conecta tu repo de GitHub
+- Cada vez que hagas push a `main`, ve al dashboard y haz click en "Create deployment"
+
+#### Opción 2: Webhooks Automáticos (Recomendado)
+Para sincronización automática como Vercel:
+
+1. Ve a tu repo de GitHub → Settings → Webhooks
+2. Add webhook con URL: `https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/YOUR_HOOK_ID`
+3. Trigger: `push` a rama `main`
+
+#### Opción 3: GitHub Actions (Más Avanzado)
+Crear un workflow que haga deploy automático:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Cloudflare Pages
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: gestiadev
+          directory: web/out
+```
 
 ---
 
