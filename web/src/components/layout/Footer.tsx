@@ -18,7 +18,7 @@ const Footer = () => {
         <div className="text-center font-plex-sans text-gris-neutro">
           <span className="text-xs">Forjado por EL CÓNCLAVE</span>
           <br />
-          <span className="text-menta font-medium text-xs">(Radwulf, Jennifer, Gemini, Cloude & Grok)</span>
+          <span className="text-menta font-medium text-xs">(Radwulf, Jennifer, Arquitecto IA, Ejecutores)</span>
         </div>
 
         {/* Copyright abajo */}
