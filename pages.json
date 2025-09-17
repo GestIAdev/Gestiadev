@@ -4,5 +4,6 @@
   "dev_command": "npm run cf:dev",
   "install_command": "npm install",
   "root_dir": "web",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "deploy_command": "npx wrangler deploy --assets=./web/out --compatibility-date=2025-09-15"
 }
