@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     siteName: "GestIAdev",
     images: [
       {
-        url: "/robot-punk-logo.png",
+        url: "/totem-logo.png",
         width: 1200,
         height: 630,
-        alt: "GestIAdev - Robot Punk Logo",
+        alt: "GestIAdev - Robot Punk Totem Logo",
       },
     ],
     locale: "es_ES",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GestIAdev - Forjamos el Futuro del Software",
     description: "Empresa especializada en desarrollo de software, consultoría tecnológica y transformación digital.",
-    images: ["/robot-punk-logo.png"],
+    images: ["/totem-logo.png"],
     creator: "@gestiadev",
   },
   robots: {
