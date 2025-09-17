@@ -1,55 +1,25 @@
-'use client'
-
-import { ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { LucideIcon } from 'lucide-react';
 
 interface TechCardProps {
-  title: string
-  description: string
-  icon: ReactNode
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  isClickable?: boolean;
 }
 
-export function TechCard({ title, description, icon }: TechCardProps) {
+const TechCard = ({ icon: Icon, title, description, isClickable = false }: TechCardProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
-      className="tech-card group relative"
-    >
-      {/* Background Grid Pattern */}
-      <div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(#333333 1px, transparent 1px)`,
-          backgroundSize: '20px 20px'
-        }}
-      />
-
-      {/* Card Content */}
-      <div className="relative z-10">
-        {/* Icon */}
-        <div className="text-accent mb-4 text-4xl">
-          {icon}
-        </div>
-
-        {/* Title */}
-        <h3 className="text-xl font-mono font-bold mb-3 text-text-primary group-hover:text-accent transition-colors duration-300">
-          {title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-text-secondary group-hover:text-text-primary transition-colors duration-300">
-          {description}
-        </p>
+    <div className={`group relative p-6 border border-gris-trazado rounded-lg overflow-hidden h-full ${isClickable ? 'cursor-pointer' : ''}`}>
+      <div className={`absolute inset-0 bg-noche ${isClickable ? 'group-hover:bg-gris-trazado/20' : ''} transition-colors duration-300`}></div>
+      <div className="relative">
+        <Icon className="w-8 h-8 text-menta mb-4" />
+        <h3 className="text-xl font-plex-mono font-bold text-hueso mb-2">{title}</h3>
+        <p className="text-gris-neutro font-plex-sans">{description}</p>
       </div>
+      {/* Hover effect line */}
+      <div className={`absolute bottom-0 left-0 h-0.5 bg-menta w-full transform transition-transform duration-300 origin-left ${isClickable ? 'scale-x-0 group-hover:scale-x-100' : 'scale-x-0'}`}></div>
+    </div>
+  );
+};
 
-      {/* Border Glow Effect */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="absolute inset-0 border border-accent" 
-             style={{ filter: 'blur(1px)' }} />
-      </div>
-    </motion.div>
-  )
-}
+export default TechCard;

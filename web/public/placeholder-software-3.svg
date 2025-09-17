@@ -1,0 +1,19 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <rect x="50" y="50" width="700" height="500" rx="8" fill="#1a1a1a" stroke="#00aaff" stroke-width="2"/>
+  <text x="400" y="100" text-anchor="middle" fill="#00aaff" font-family="monospace" font-size="24" font-weight="bold">AUTOMATION ENGINE</text>
+  <text x="400" y="140" text-anchor="middle" fill="#666" font-family="monospace" font-size="16">Procesos Automatizados Inteligentes</text>
+  <circle cx="200" cy="250" r="60" fill="#333" stroke="#00aaff" stroke-width="2"/>
+  <text x="200" y="250" text-anchor="middle" fill="#00aaff" font-family="monospace" font-size="12" dy="5">IA</text>
+  <text x="200" y="270" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Inteligencia</text>
+  <text x="200" y="285" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Artificial</text>
+  <circle cx="400" cy="250" r="60" fill="#333" stroke="#00aaff" stroke-width="2"/>
+  <text x="400" y="250" text-anchor="middle" fill="#00aaff" font-family="monospace" font-size="12" dy="5">AUTO</text>
+  <text x="400" y="270" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Automatización</text>
+  <circle cx="600" cy="250" r="60" fill="#333" stroke="#00aaff" stroke-width="2"/>
+  <text x="600" y="250" text-anchor="middle" fill="#00aaff" font-family="monospace" font-size="12" dy="5">WORKFLOW</text>
+  <text x="600" y="270" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Flujo de Trabajo</text>
+  <rect x="100" y="350" width="600" height="150" rx="4" fill="#333" stroke="#00aaff" stroke-width="1"/>
+  <text x="400" y="410" text-anchor="middle" fill="#00aaff" font-family="monospace" font-size="14">SISTEMA DE AUTOMATIZACIÓN INTEGRAL</text>
+  <text x="400" y="430" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Optimización de Procesos Empresariales</text>
+</svg>

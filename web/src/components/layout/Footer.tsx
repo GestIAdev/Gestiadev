@@ -1,28 +1,51 @@
-export function Footer() {
-  const year = new Date().getFullYear()
+// components/layout/Footer.tsx
+import LogoTotem from '@/components/ui/LogoTotem';
+// El LogoWordmark (texto glitch) NO pertenece aquí. Es ruido.
+
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[#333333] mt-20">
-      <div className="max-w-[1100px] mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <div className="font-mono text-lg font-bold">GestIAdev</div>
-          <div className="text-sm text-[#888888]">© {year}</div>
+    <footer className="relative z-10 w-full border-t border-gris-trazado bg-noche/80">
+      {/* MÓVIL: Layout vertical centrado */}
+      <div className="md:hidden max-w-[1100px] mx-auto py-4 px-4 flex flex-col items-center gap-4 text-sm">
+        {/* Logo arriba */}
+        <div className="flex-shrink-0">
+          <LogoTotem className="w-8 h-8" />
         </div>
 
-        <div className="text-sm text-[#888888]">
-          <ul>
-            <li><a href="#" className="hover:text-[#00F2A9]">LinkedIn</a></li>
-            <li><a href="#" className="hover:text-[#00F2A9]">GitHub</a></li>
-          </ul>
+        {/* Firma centrada */}
+        <div className="text-center font-plex-sans text-gris-neutro">
+          <span className="text-xs">Forjado por EL CÓNCLAVE</span>
+          <br />
+          <span className="text-menta font-medium text-xs">(Radwulf, Jennifer, Gemini, Cloude & Grok)</span>
         </div>
 
-        <div className="text-sm text-[#888888]">
-          <ul>
-            <li><a href="#" className="hover:text-[#00F2A9]">Política de Privacidad</a></li>
-            <li><a href="#" className="hover:text-[#00F2A9]">Términos</a></li>
-          </ul>
+        {/* Copyright abajo */}
+        <div className="font-mono tracking-widest text-xs uppercase text-gris-neutro text-center">
+          <span>&copy; {currentYear} GESTIADEV // CÓDIGO = ARTE</span>
+        </div>
+      </div>
+
+      {/* DESKTOP: Layout horizontal original */}
+      <div className="hidden md:flex max-w-[1100px] mx-auto py-6 px-4 justify-between items-center text-sm">
+        {/* IZQUIERDA: Logo (Tótem solo) */}
+        <div className="flex-shrink-0">
+          <LogoTotem className="w-10 h-10" />
+        </div>
+
+        {/* CENTRO: La Firma del Cónclave */}
+        <div className="text-center font-plex-sans text-gris-neutro">
+          <span className="text-xs">Forjado por EL CÓNCLAVE</span>
+          <br />
+          <span className="text-menta font-medium">(Radwulf, Jennifer, Arquitecto IA, Ejecutores)</span>
+        </div>
+
+        {/* DERECHA: Copyright y Lema */}
+        <div className="font-mono tracking-widest text-xs uppercase text-gris-neutro text-right">
+          <span>&copy; {currentYear} Software Gestion // CÓDIGO = ARTE</span>
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};export default Footer;

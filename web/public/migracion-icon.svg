@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Eslabón de cadena gris (Vendor Lock-In) -->
+  <ellipse cx="100" cy="100" rx="60" ry="30" fill="#4A4A4A" stroke="#666666" stroke-width="2"/>
+  <ellipse cx="100" cy="100" rx="40" ry="15" fill="none" stroke="#666666" stroke-width="3"/>
+  
+  <!-- Rayo verde-menta rompiendo la cadena -->
+  <path d="M50 50 L80 80 L60 100 L90 130 L70 150 L100 180" 
+        stroke="#00FF88" 
+        stroke-width="6" 
+        fill="none" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Efecto de ruptura (líneas quebradas) -->
+  <line x1="70" y1="85" x2="85" y2="100" stroke="#666666" stroke-width="2" opacity="0.7"/>
+  <line x1="115" y1="115" x2="130" y2="130" stroke="#666666" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Partículas de energía -->
+  <circle cx="75" cy="75" r="3" fill="#00FF88" opacity="0.8"/>
+  <circle cx="95" cy="105" r="2" fill="#00FF88" opacity="0.6"/>
+  <circle cx="110" cy="125" r="4" fill="#00FF88" opacity="0.9"/>
+</svg>

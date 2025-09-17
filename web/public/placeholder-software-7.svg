@@ -1,0 +1,18 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <rect x="50" y="50" width="700" height="500" rx="8" fill="#1a1a1a" stroke="#ff6600" stroke-width="2"/>
+  <text x="400" y="100" text-anchor="middle" fill="#ff6600" font-family="monospace" font-size="24" font-weight="bold">DIGITAL FORTRESS</text>
+  <text x="400" y="140" text-anchor="middle" fill="#666" font-family="monospace" font-size="16">Arquitectura de Seguridad Robusta</text>
+  <rect x="150" y="200" width="180" height="120" rx="4" fill="#333" stroke="#ff6600" stroke-width="1"/>
+  <text x="240" y="240" text-anchor="middle" fill="#ff6600" font-family="monospace" font-size="12">FIREWALL</text>
+  <text x="240" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Protección Perimetral</text>
+  <rect x="370" y="200" width="180" height="120" rx="4" fill="#333" stroke="#ff6600" stroke-width="1"/>
+  <text x="460" y="240" text-anchor="middle" fill="#ff6600" font-family="monospace" font-size="12">ENCRYPTION</text>
+  <text x="460" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Cifrado de Datos</text>
+  <rect x="590" y="200" width="180" height="120" rx="4" fill="#333" stroke="#ff6600" stroke-width="1"/>
+  <text x="680" y="240" text-anchor="middle" fill="#ff6600" font-family="monospace" font-size="12">MONITORING</text>
+  <text x="680" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Vigilancia Continua</text>
+  <rect x="100" y="350" width="600" height="150" rx="4" fill="#333" stroke="#ff6600" stroke-width="1"/>
+  <text x="400" y="410" text-anchor="middle" fill="#ff6600" font-family="monospace" font-size="14">SISTEMA DE SEGURIDAD INTEGRAL</text>
+  <text x="400" y="430" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Protección Avanzada contra Amenazas</text>
+</svg>

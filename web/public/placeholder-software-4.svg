@@ -1,0 +1,18 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <rect x="50" y="50" width="700" height="500" rx="8" fill="#1a1a1a" stroke="#ffaa00" stroke-width="2"/>
+  <text x="400" y="100" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="24" font-weight="bold">SECURITY FRAMEWORK</text>
+  <text x="400" y="140" text-anchor="middle" fill="#666" font-family="monospace" font-size="16">Protección y Seguridad Avanzada</text>
+  <rect x="150" y="200" width="200" height="100" rx="4" fill="#333" stroke="#ffaa00" stroke-width="1"/>
+  <text x="250" y="240" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="12">ENCRIPTACIÓN</text>
+  <text x="250" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Datos Seguros</text>
+  <rect x="450" y="200" width="200" height="100" rx="4" fill="#333" stroke="#ffaa00" stroke-width="1"/>
+  <text x="550" y="240" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="12">AUTENTICACIÓN</text>
+  <text x="550" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Acceso Controlado</text>
+  <rect x="150" y="350" width="200" height="100" rx="4" fill="#333" stroke="#ffaa00" stroke-width="1"/>
+  <text x="250" y="390" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="12">MONITOREO</text>
+  <text x="250" y="410" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Vigilancia 24/7</text>
+  <rect x="450" y="350" width="200" height="100" rx="4" fill="#333" stroke="#ffaa00" stroke-width="1"/>
+  <text x="550" y="390" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="12">AUDITORÍA</text>
+  <text x="550" y="410" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Registro de Eventos</text>
+</svg>

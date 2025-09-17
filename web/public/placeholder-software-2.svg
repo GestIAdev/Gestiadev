@@ -1,0 +1,15 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <rect x="50" y="50" width="700" height="500" rx="8" fill="#1a1a1a" stroke="#ff0088" stroke-width="2"/>
+  <text x="400" y="100" text-anchor="middle" fill="#ff0088" font-family="monospace" font-size="24" font-weight="bold">ANALYTICS DASHBOARD</text>
+  <text x="400" y="140" text-anchor="middle" fill="#666" font-family="monospace" font-size="16">Análisis y Reportes Avanzados</text>
+  <rect x="100" y="200" width="250" height="120" rx="4" fill="#333" stroke="#ff0088" stroke-width="1"/>
+  <text x="225" y="240" text-anchor="middle" fill="#ff0088" font-family="monospace" font-size="12">GRÁFICOS</text>
+  <text x="225" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Visualización de Datos</text>
+  <rect x="400" y="200" width="250" height="120" rx="4" fill="#333" stroke="#ff0088" stroke-width="1"/>
+  <text x="525" y="240" text-anchor="middle" fill="#ff0088" font-family="monospace" font-size="12">REPORTES</text>
+  <text x="525" y="260" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Generación Automática</text>
+  <rect x="100" y="350" width="550" height="150" rx="4" fill="#333" stroke="#ff0088" stroke-width="1"/>
+  <text x="375" y="410" text-anchor="middle" fill="#ff0088" font-family="monospace" font-size="14">MÉTRICAS EN TIEMPO REAL</text>
+  <text x="375" y="430" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Monitoreo Continuo del Sistema</text>
+</svg>

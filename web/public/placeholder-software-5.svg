@@ -1,0 +1,20 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <rect x="50" y="50" width="700" height="500" rx="8" fill="#1a1a1a" stroke="#aa00ff" stroke-width="2"/>
+  <text x="400" y="100" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="24" font-weight="bold">AGILE METHODOLOGY</text>
+  <text x="400" y="140" text-anchor="middle" fill="#666" font-family="monospace" font-size="16">Desarrollo Ágil y Colaborativo</text>
+  <rect x="100" y="200" width="150" height="80" rx="4" fill="#333" stroke="#aa00ff" stroke-width="1"/>
+  <text x="175" y="230" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="10">SPRINT</text>
+  <text x="175" y="245" text-anchor="middle" fill="#666" font-family="monospace" font-size="8">Iteraciones</text>
+  <rect x="300" y="200" width="150" height="80" rx="4" fill="#333" stroke="#aa00ff" stroke-width="1"/>
+  <text x="375" y="230" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="10">SCRUM</text>
+  <text x="375" y="245" text-anchor="middle" fill="#666" font-family="monospace" font-size="8">Metodología</text>
+  <rect x="500" y="200" width="150" height="80" rx="4" fill="#333" stroke="#aa00ff" stroke-width="1"/>
+  <text x="575" y="230" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="10">KANBAN</text>
+  <text x="575" y="245" text-anchor="middle" fill="#666" font-family="monospace" font-size="8">Flujo Visual</text>
+  <rect x="100" y="320" width="550" height="120" rx="4" fill="#333" stroke="#aa00ff" stroke-width="1"/>
+  <text x="375" y="360" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="12">GESTIÓN DE PROYECTOS</text>
+  <text x="375" y="380" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Planificación y Seguimiento</text>
+  <rect x="100" y="470" width="550" height="50" rx="4" fill="#333" stroke="#aa00ff" stroke-width="1"/>
+  <text x="375" y="495" text-anchor="middle" fill="#aa00ff" font-family="monospace" font-size="10">COLABORACIÓN EN EQUIPO</text>
+</svg>

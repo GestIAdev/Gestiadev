@@ -26,7 +26,7 @@ export default function Starfield() {
     while (svg.firstChild) svg.removeChild(svg.firstChild)
 
     const ns = 'http://www.w3.org/2000/svg'
-    const rng = makeRng(424242) // Semilla fija para que el patrón sea siempre el mismo
+    const rng = makeRng(Date.now()) // Semilla dinámica para un universo nuevo en cada carga
 
     // --- DEFINICIONES (DEFS) ---
     const defs = document.createElementNS(ns, 'defs')
@@ -81,12 +81,19 @@ export default function Starfield() {
 
     const GAUSSIAN_SPREAD_FACTOR = 0.35
 
-    const spheres: Sphere[] = [
-      { cx: 950, cy: 450, r: 350, density: 600 },
-      { cx: 400, cy: 250, r: 200, density: 350 },
-      { cx: 1300, cy: 180, r: 150, density: 200 },
-      { cx: 200, cy: 650, r: 250, density: 300 },
-    ]
+    const sphereBases = [
+      { r: 350, density: 600 },
+      { r: 200, density: 350 },
+      { r: 150, density: 200 },
+      { r: 250, density: 300 },
+    ];
+
+    const spheres: Sphere[] = sphereBases.map(base => ({
+      cx: rng() * 1600,
+      cy: rng() * 900,
+      r: base.r,
+      density: base.density,
+    }));
 
     const frag = document.createDocumentFragment()
     spheres.forEach(s => {
