@@ -37,10 +37,8 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
       setIsLoading(true);
       setError(null);
 
-      // Preferir ruta relativa pura: /luxsync/<FILE>.md
-      const relative = audit.path.replace(/^\//, '');
-      const fileName = relative.split('/').pop() ?? relative;
-      const url = `/luxsync/${fileName}`;
+      // Usar directamente la URL absoluta del bucket de Supabase
+      const url = audit.path;
 
       try {
         const response = await fetch(url);
