@@ -117,7 +117,7 @@ export async function fetchReplies(threadId: string): Promise<DbReply[]> {
     return (data ?? []).map((row: any) => ({
       ...row,
       author: Array.isArray(row.author) ? row.author[0] : row.author
-    })) as DbReply[];
+    })) as unknown as DbReply[];
 }
 
 export async function insertReply(payload: {
