@@ -37,57 +37,24 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
       setIsLoading(true);
       setError(null);
 
-      // Construir lista de candidatos para fetch, con caídas para basePath / rutas relativas
+      // Preferir ruta relativa pura: /luxsync/<FILE>.md
       const relative = audit.path.replace(/^\//, '');
-      // legacy map: cubre residuos antiguos que pueden haber quedado en despliegues
-      const legacyMap: Record<string, string[]> = {
-        'obsidian-vault': [
-          '/luxsync/OBSIDIAN-VAULT-AUDIT.md',
-          '/luxsync/obsidian-vault-audit.md',
-        ],
-      };
-
-      const legacyCandidates = legacyMap[audit.id] ?? [];
-
       const fileName = relative.split('/').pop() ?? relative;
-      const repoRawBase = 'https://raw.githubusercontent.com/GestIAdev/Gestiadev/main/web/public/luxsync/';
-      const jsDelivrBase = 'https://cdn.jsdelivr.net/gh/GestIAdev/Gestiadev@main/web/public/luxsync/';
+      const url = `/luxsync/${fileName}`;
 
-      const candidates = [
-        audit.path, // absolute path as declared
-        ...legacyCandidates, // try known legacy names first
-        relative, // relative to current URL
-        new URL(relative, document.baseURI).href, // resolved against current document base
-        window.location.origin.replace(/\/$/, '') + '/' + relative, // origin + relative
-        repoRawBase + fileName, // raw.githubusercontent fallback
-        jsDelivrBase + fileName, // jsDelivr CDN fallback
-      ];
-
-      const tried: string[] = [];
-      let lastErr: any = null;
-      for (const url of candidates) {
-        tried.push(url);
-        try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`HTTP ${response.status} @ ${url}`);
-          const text = await response.text();
-          setMarkdownContent(text);
-          console.info('[AuditModal] fetched', url);
-          lastErr = null;
-          break;
-        } catch (err) {
-          console.warn('[AuditModal] fetch failed', url, err);
-          lastErr = err;
-          // continue to next candidate
-        }
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status} @ ${url}`);
+        const text = await response.text();
+        setMarkdownContent(text);
+        console.info('[AuditModal] fetched', url);
+      } catch (err) {
+        console.warn('[AuditModal] fetch failed', url, err);
+        const msg = err instanceof Error ? err.message : 'Error al cargar el informe';
+        setError(`${msg} — intentado: ${url}`);
+      } finally {
+        setIsLoading(false);
       }
-
-      if (lastErr) {
-        const msg = lastErr instanceof Error ? lastErr.message : 'Error al cargar el informe';
-        setError(`${msg} — intentadas: ${tried.join(' | ')}`);
-      }
-
-      setIsLoading(false);
     };
 
     fetchMarkdown();
