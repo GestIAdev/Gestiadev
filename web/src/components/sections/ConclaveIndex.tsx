@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, fetchCategories, fetchThreads, insertThread } from '@/lib/supabaseClient';
-import type { DbCategory, DbThread } from '@/lib/supabaseClient';
+import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply } from '@/lib/supabaseClient';
+import type { DbCategory, DbThread, DbReply } from '@/lib/supabaseClient';
 import type { View } from '@/app/page';
 
 // ============================================================
@@ -48,6 +49,7 @@ const IconDisc = () => (
 // ============================================================
 type Category = DbCategory;
 type LiveThread = DbThread;
+type LiveReply = DbReply;
 
 // Mapa slug → icono SVG
 type CategoryIcon = 'megaphone' | 'wrench' | 'chip' | 'monitor';
@@ -84,6 +86,13 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
   const [selectedThread, setSelectedThread] = useState<LiveThread | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [showAuthMenu, setShowAuthMenu] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
+  const authButtonRef = React.useRef<HTMLButtonElement>(null);
+  const [authMenuPos, setAuthMenuPos] = React.useState({ top: 0, right: 0 });
 
   // ── DATOS REALES ──
   const [categories, setCategories] = useState<Category[]>([]);
@@ -115,6 +124,17 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Calcular posición del dropdown cuando se abre
+  useEffect(() => {
+    if (showAuthMenu && authButtonRef.current) {
+      const rect = authButtonRef.current.getBoundingClientRect();
+      setAuthMenuPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [showAuthMenu]);
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -160,12 +180,14 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
             onBack={() => setConclaveView('index')}
             onSelectThread={(thread) => { setSelectedThread(thread); setConclaveView('thread'); }}
             onCreateThread={() => setShowCreateModal(true)}
+            session={session}
           />
         );
       case 'thread':
         return selectedThread && (
           <ThreadView
             thread={selectedThread}
+            session={session}
             onBack={() => setConclaveView('category')}
           />
         );
@@ -250,7 +272,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
   // ── RENDER PRINCIPAL ──
   return (
     <motion.section
-      className="w-full max-w-[1200px] relative z-10"
+      className="w-full max-w-[1200px] relative z-20"
       key="conclave-section"
       variants={variants}
       initial="hidden"
@@ -280,12 +302,140 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
               + Nuevo Hilo
             </button>
           ) : (
-            <button
-              onClick={() => supabase.auth.signInWithOAuth({ provider: 'discord' })}
-              className="flex items-center gap-2 bg-transparent border border-gris-neutro text-gris-neutro font-plex-mono text-xs px-4 py-2.5 rounded-md hover:border-menta hover:text-menta hover:shadow-[0_0_15px_rgba(0,229,255,0.15)] transition-all"
-            >
-              ↗ Identificarse
-            </button>
+            <div className="relative">
+              {/* Botón principal de login */}
+              <button
+                ref={authButtonRef}
+                onClick={() => { setShowAuthMenu(v => !v); setShowEmailInput(false); setMagicLinkSent(false); }}
+                className="flex items-center gap-2 bg-transparent border border-gris-neutro text-gris-neutro font-plex-mono text-xs px-4 py-2.5 rounded-md hover:border-menta hover:text-menta hover:shadow-[0_0_15px_rgba(0,229,255,0.15)] transition-all"
+              >
+                ↗ Identificarse
+              </button>
+
+              {/* Menú desplegable retro-terminal — PORTALED */}
+              {showAuthMenu && createPortal(
+                <div 
+                  className="fixed w-64 border border-menta/40 rounded-lg bg-noche/95 backdrop-blur-md shadow-[0_0_30px_rgba(0,242,169,0.1)] z-[9999] overflow-hidden"
+                  style={{ top: `${authMenuPos.top}px`, right: `${authMenuPos.right}px` }}
+                >
+                  {/* Header del menú */}
+                  <div className="px-4 py-2.5 border-b border-gris-trazado/50 flex items-center justify-between">
+                    <span className="text-[10px] font-plex-mono text-menta/60 tracking-[0.2em]">// AUTH GATEWAY</span>
+                    <button onClick={() => setShowAuthMenu(false)} className="text-gris-neutro hover:text-hueso text-xs leading-none">✕</button>
+                  </div>
+
+                  {!showEmailInput ? (
+                    <div className="p-2 flex flex-col gap-1">
+                      {/* Google */}
+                      <button
+                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'google' }); setShowAuthMenu(false); }}
+                        className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded text-xs font-plex-mono text-hueso hover:bg-menta/10 hover:text-menta transition-colors group"
+                      >
+                        <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span>Entrar con Google</span>
+                      </button>
+
+                      {/* Discord */}
+                      <button
+                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'discord' }); setShowAuthMenu(false); }}
+                        className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded text-xs font-plex-mono text-hueso hover:bg-menta/10 hover:text-menta transition-colors group"
+                      >
+                        <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                        <span>Entrar con Discord</span>
+                      </button>
+
+                      {/* Separador */}
+                      <div className="flex items-center gap-2 px-3 py-1">
+                        <div className="flex-1 h-px bg-gris-trazado/40"></div>
+                        <span className="text-[9px] font-plex-mono text-gris-neutro/50 tracking-widest">O</span>
+                        <div className="flex-1 h-px bg-gris-trazado/40"></div>
+                      </div>
+
+                      {/* Magic Link */}
+                      <button
+                        onClick={() => setShowEmailInput(true)}
+                        className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded text-xs font-plex-mono text-hueso hover:bg-menta/10 hover:text-menta transition-colors group"
+                      >
+                        <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                        <span>Magic Link (Email)</span>
+                      </button>
+                    </div>
+                  ) : magicLinkSent ? (
+                    /* Confirmación de envío */
+                    <div className="p-4 flex flex-col items-center gap-3 text-center">
+                      <span className="text-menta text-lg">✓</span>
+                      <p className="text-xs font-plex-mono text-menta leading-relaxed tracking-wide">
+                        [ ENLACE DE ACCESO<br/>ENVIADO AL CORREO ]
+                      </p>
+                      <p className="text-[10px] font-plex-sans text-gris-neutro">{magicLinkEmail}</p>
+                      <button
+                        onClick={() => { setShowAuthMenu(false); setShowEmailInput(false); setMagicLinkSent(false); setMagicLinkEmail(''); }}
+                        className="text-[10px] font-plex-mono text-gris-neutro hover:text-hueso transition-colors mt-1"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  ) : (
+                    /* Input de email para Magic Link */
+                    <div className="p-3 flex flex-col gap-2">
+                      <p className="text-[10px] font-plex-mono text-menta/60 tracking-widest px-1">// MAGIC LINK</p>
+                      <input
+                        type="email"
+                        value={magicLinkEmail}
+                        onChange={(e) => setMagicLinkEmail(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            (async () => {
+                              if (!magicLinkEmail.trim()) return;
+                              setMagicLinkLoading(true);
+                              await supabase.auth.signInWithOtp({ email: magicLinkEmail.trim() });
+                              setMagicLinkLoading(false);
+                              setMagicLinkSent(true);
+                            })();
+                          }
+                          if (e.key === 'Escape') { setShowEmailInput(false); }
+                        }}
+                        placeholder="tu@correo.com"
+                        autoFocus
+                        className="w-full bg-noche border border-gris-trazado/50 rounded px-3 py-2 text-xs font-plex-mono text-hueso placeholder:text-gris-neutro/40 focus:outline-none focus:border-menta/60 transition-colors"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowEmailInput(false)}
+                          className="flex-1 text-[10px] font-plex-mono text-gris-neutro border border-gris-trazado/40 px-2 py-1.5 rounded hover:border-hueso hover:text-hueso transition-colors"
+                        >
+                          ← Volver
+                        </button>
+                        <button
+                          disabled={magicLinkLoading || !magicLinkEmail.trim()}
+                          onClick={async () => {
+                            if (!magicLinkEmail.trim()) return;
+                            setMagicLinkLoading(true);
+                            await supabase.auth.signInWithOtp({ email: magicLinkEmail.trim() });
+                            setMagicLinkLoading(false);
+                            setMagicLinkSent(true);
+                          }}
+                          className="flex-1 text-[10px] font-plex-mono text-noche bg-menta font-bold px-2 py-1.5 rounded hover:bg-menta/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {magicLinkLoading ? '...' : 'Enviar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>,
+                document.body
+              )}
+            </div>
           )}
           <div className="flex items-center gap-2 border border-menta/30 rounded-full px-3 py-2 bg-noche/60 backdrop-blur-sm">
             <span className="relative flex h-2 w-2">
@@ -342,9 +492,10 @@ interface ThreadListProps {
   onBack: () => void;
   onSelectThread: (thread: LiveThread) => void;
   onCreateThread: () => void;
+  session?: Session | null;
 }
 
-const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread }: ThreadListProps) => {
+const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread, session }: ThreadListProps & { session: Session | null }) => {
   const categoryIconMap: Record<CategoryIcon, React.ReactNode> = {
     megaphone: <IconMegaphone />,
     wrench: <IconWrench />,
@@ -353,7 +504,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread 
   };
   const iconKey = SLUG_ICON_MAP[category.slug] ?? 'monitor';
   return (
-  <div>
+  <div className="bg-noche/80 backdrop-blur-md border border-gris-trazado/50 rounded-xl p-6">
     {/* Breadcrumb */}
     <div className="flex items-center gap-2 mb-6">
       <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
@@ -364,29 +515,23 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread 
     </div>
 
     {/* Category Header */}
-    <div className="flex items-center justify-between mb-6">
-      <div className="flex items-center gap-3">
-        <span className="text-menta/70">{categoryIconMap[iconKey]}</span>
-        <div>
-          <h2 className="text-xl font-plex-mono font-bold text-hueso">{category.name}</h2>
-          <p className="text-xs font-plex-sans text-gris-neutro">{category.description}</p>
-        </div>
+    <div className="flex items-center gap-3 mb-6">
+      <span className="text-menta/70">{categoryIconMap[iconKey]}</span>
+      <div>
+        <h2 className="text-xl font-plex-mono font-bold text-hueso">{category.name}</h2>
+        <p className="text-xs font-plex-sans text-gris-neutro">{category.description}</p>
       </div>
-      <button
-        onClick={onCreateThread}
-        className="flex items-center gap-2 bg-transparent border border-menta text-menta font-plex-mono text-xs px-4 py-2.5 rounded-md hover:bg-menta/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all"
-      >
-        + Nuevo Hilo
-      </button>
     </div>
 
     {/* Thread List */}
     {threads.length === 0 ? (
       <div className="border border-gris-trazado/30 border-dashed rounded-lg p-12 text-center">
         <p className="text-sm font-plex-mono text-gris-neutro/60">No hay hilos en esta categoría todavía.</p>
-        <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
-          Sé el primero en publicar →
-        </button>
+        {session && (
+          <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
+            Sé el primero en publicar →
+          </button>
+        )}
       </div>
     ) : (
       <div className="flex flex-col mb-8 border border-gris-trazado/30 rounded-lg overflow-hidden bg-noche/80 backdrop-blur-md">
@@ -425,80 +570,133 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread 
 };
 
 // ============================================================
-// THREADVIEW — Vista de hilo con respuestas (contenido a hidratar en WAVE 2507)
+// THREADVIEW — Vista de hilo con respuestas y datos reales (WAVE 2509)
 // ============================================================
 interface ThreadViewProps {
   thread: LiveThread;
+  session: Session | null;
   onBack: () => void;
 }
 
-const mockReplies = [
-  { id: 'r1', author: 'selene_dev', content: 'Confirmado. Estamos revisando la capa de detección USB en el módulo DMX Nexus. El fix sale en el próximo hotfix (v0.9.4).', createdAt: 'Hace 50min' },
-  { id: 'r2', author: 'lux_rookie_23', content: 'Gracias! ¿Hay un workaround temporal mientras tanto?', createdAt: 'Hace 40min' },
-  { id: 'r3', author: 'selene_dev', content: 'Sí: desconecta el USB, cierra LuxSync, vuelve a conectar y abre LuxSync de nuevo. El handshake se re-negocia en el boot.', createdAt: 'Hace 35min' },
-];
+const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
+  const [replies, setReplies] = useState<LiveReply[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(true);
+  const [replyContent, setReplyContent] = useState('');
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
 
-const ThreadView = ({ thread, onBack }: ThreadViewProps) => (
-  <div>
-    {/* Breadcrumb */}
-    <div className="flex items-center gap-2 mb-6">
-      <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
-        ← {thread.category?.name ?? 'Categoría'}
-      </button>
-    </div>
+  useEffect(() => {
+    setRepliesLoading(true);
+    fetchReplies(thread.id)
+      .then(setReplies)
+      .catch(console.error)
+      .finally(() => setRepliesLoading(false));
+  }, [thread.id]);
 
-    {/* Thread Header */}
-    <div className="border border-gris-trazado/50 rounded-xl p-6 bg-noche/40 backdrop-blur-sm mb-6">
-      <div className="flex items-center gap-3 mb-3">
-        {thread.is_pinned && (
-          <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 rounded-full">PINNED</span>
-        )}
-      </div>
-      <h2 className="text-xl font-plex-mono font-bold text-hueso mb-3">{thread.title}</h2>
-      <p className="text-sm font-plex-sans text-gris-neutro leading-relaxed mb-4 italic opacity-50">
-        [ Cuerpo del hilo — se hidratará con el campo <code className="not-italic">content</code> en WAVE 2507 ]
-      </p>
-      <div className="flex items-center gap-4 pt-3 border-t border-gris-trazado/30">
-        <span className="text-[10px] font-plex-sans text-gris-neutro">
-          Publicado por <span className="text-menta/70 font-plex-mono">{thread.author?.username ?? 'anon'}</span>
-        </span>
-        <span className="text-[10px] font-plex-sans text-gris-neutro/50">{relativeTime(thread.created_at)}</span>
-      </div>
-    </div>
+  const handleReplySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.user?.id || !replyContent.trim()) return;
+    setReplySubmitting(true);
+    setReplyError(null);
+    try {
+      await insertReply({
+        thread_id: thread.id,
+        author_id: session.user.id,
+        content: replyContent.trim(),
+      });
+      setReplyContent('');
+      const updated = await fetchReplies(thread.id);
+      setReplies(updated);
+    } catch (err: any) {
+      setReplyError(err.message ?? 'Error al enviar respuesta.');
+    } finally {
+      setReplySubmitting(false);
+    }
+  };
 
-    {/* Replies */}
-    <h3 className="text-sm font-plex-mono font-bold text-hueso mb-4 flex items-center gap-2">
-      <span className="w-1 h-4 bg-menta"></span> {thread.reply_count} Respuestas
-    </h3>
-    <div className="flex flex-col gap-3 mb-8">
-      {mockReplies.map((reply) => (
-        <div key={reply.id} className="border border-gris-trazado/30 rounded-lg p-5 bg-noche/20">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-plex-mono text-menta/70">{reply.author}</span>
-            <span className="text-[10px] font-plex-sans text-gris-neutro/50">{reply.createdAt}</span>
-          </div>
-          <p className="text-sm font-plex-sans text-gris-neutro leading-relaxed">{reply.content}</p>
-        </div>
-      ))}
-    </div>
-
-    {/* Reply input mock */}
-    <div className="border border-gris-trazado/50 rounded-xl p-5 bg-noche/40 mb-8">
-      <p className="text-xs font-plex-mono text-gris-neutro/50 mb-3">Responder en este hilo</p>
-      <div className="w-full h-24 bg-noche/60 border border-gris-trazado/30 rounded-lg mb-3 flex items-center justify-center">
-        <span className="text-xs font-plex-mono text-gris-neutro/30">[ Textarea — Requiere autenticación Supabase ]</span>
-      </div>
-      <div className="flex items-center justify-between">
-          <button className="inline-flex items-center gap-1.5 text-[10px] font-plex-mono text-yellow-500/60 border border-yellow-500/20 px-3 py-1.5 rounded cursor-not-allowed">
-            <IconDisc /> Adjuntar .lfx
-          </button>
-        <button className="text-xs font-plex-mono text-noche bg-menta/30 px-4 py-2 rounded cursor-not-allowed">
-          Enviar Respuesta
+  return (
+    <div>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-6">
+        <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
+          ← {thread.category?.name ?? 'Categoría'}
         </button>
       </div>
+
+      {/* Thread Header — glassmorphic con borde menta */}
+      <div className="bg-gradient-to-br from-noche/95 to-noche/80 backdrop-blur-md shadow-2xl border border-gris-trazado/30 border-l-4 border-l-menta/60 rounded-xl p-6 mb-6">
+        <div className="flex items-center gap-3 mb-3">
+          {thread.is_pinned && (
+            <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 rounded-full tracking-widest">▲ PINNED</span>
+          )}
+        </div>
+        <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-4 leading-tight">{thread.title}</h2>
+        <div className="border-t border-gris-trazado/30 pt-4 mb-4">
+          <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{thread.content}</p>
+        </div>
+        <div className="flex items-center gap-4 pt-3 border-t border-gris-trazado/20">
+          <span className="text-xs font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
+          <span className="text-xs font-plex-sans text-gris-neutro/40">{relativeTime(thread.created_at)}</span>
+        </div>
+      </div>
+
+      {/* Replies Header */}
+      <h3 className="text-sm font-plex-mono font-bold text-hueso mb-4 flex items-center gap-2">
+        <span className="w-1 h-4 bg-menta inline-block"></span>
+        {replies.length} Respuestas
+      </h3>
+
+      {/* Replies List */}
+      <div className="flex flex-col mb-8">
+        {repliesLoading ? (
+          <p className="text-xs font-plex-mono text-gris-neutro/40 text-center py-8">Cargando respuestas...</p>
+        ) : replies.length === 0 ? (
+          <div className="border border-gris-trazado/20 border-dashed rounded-lg p-10 text-center">
+            <p className="text-xs font-plex-mono text-gris-neutro/40">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
+          </div>
+        ) : (
+          replies.map((reply) => (
+            <div key={reply.id} className="bg-noche/60 backdrop-blur-sm border border-gris-trazado/20 rounded-lg p-5 mb-4">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gris-trazado/20">
+                <span className="text-xs font-plex-mono text-menta/80">{reply.author?.username ?? 'anon'}</span>
+                <span className="text-[10px] font-plex-sans text-gris-neutro/40">{relativeTime(reply.created_at)}</span>
+              </div>
+              <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{reply.content}</p>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Reply form — funcional si hay sesión */}
+      {session ? (
+        <form onSubmit={handleReplySubmit} className="border border-gris-trazado/40 rounded-xl p-5 bg-noche/60 backdrop-blur-sm mb-8">
+          <p className="text-xs font-plex-mono text-menta/60 mb-3">// Responder en este hilo</p>
+          <textarea
+            value={replyContent}
+            onChange={(e) => setReplyContent(e.target.value)}
+            rows={4}
+            placeholder="Escribe tu respuesta..."
+            className="w-full bg-noche/80 border border-gris-trazado/30 rounded-lg px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 resize-none mb-3"
+          />
+          {replyError && <p className="text-xs text-red-400 font-plex-mono mb-2">{replyError}</p>}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={replySubmitting || !replyContent.trim()}
+              className="text-xs font-plex-mono text-noche bg-menta px-5 py-2 rounded-lg disabled:opacity-40 hover:bg-menta/90 transition-colors"
+            >
+              {replySubmitting ? 'Enviando...' : 'Enviar Respuesta'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="border border-gris-trazado/30 border-dashed rounded-xl p-5 bg-noche/40 mb-8 text-center">
+          <p className="text-xs font-plex-mono text-gris-neutro/40">Inicia sesión para responder en este hilo.</p>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // ============================================================
 // CREATETHREADMODAL — Modal con INSERT real a Supabase

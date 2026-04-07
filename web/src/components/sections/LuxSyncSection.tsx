@@ -1,26 +1,80 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { View } from '@/app/page';
+import AuditModal, { type AuditDoc } from '@/components/ui/AuditModal';
 
 interface LuxSyncSectionProps {
   setActiveView: (view: View) => void;
 }
 
-const audits = [
-  { id: 1, title: 'WAVE 2490 — THE OBSIDIAN VAULT', desc: 'Criptografía offline, firmas RSA y Zero-Trust Architecture.' },
-  { id: 2, title: 'WAVE 2096 — OMNILIQUID ENGINE', desc: 'Físicas de fluidos aplicadas al DMX. Reactividad espectral pura.' },
-  { id: 3, title: 'WAVE 2050 — KINETIC CHROMATIC', desc: 'Motores de movimiento independientes de la señal de BPM.' },
-  { id: 4, title: 'WAVE 1003 — TRINITY AUDIO', desc: 'Captura WASAPI loopback y Worker threads aislados (Phantom Worker).' },
-  { id: 5, title: 'WAVE 2097 — NEURAL COMMANDER', desc: 'Orquestación de estados e hilos mediante TitanOrchestrator.' },
-  { id: 6, title: 'WAVE 1203 — DMX NEXUS', desc: 'Gestión de hardware USB-Serial y ArtNet con auto-recuperación.' },
-  { id: 7, title: 'WAVE 2495 — SELENE CORE', desc: 'IA integrada para la toma de decisiones lumínicas en vivo.' },
-  { id: 8, title: 'WAVE 0000 — COMPLIANCE & LEGAL', desc: 'Auditoría de licencias, MIT, y protección de propiedad intelectual.' },
+// ============================================================
+// AUDIT_DOCS — Biblioteca de informes clasificados
+// Patrón: Metadatos + Path a archivos .md en /public/luxsync/
+// Fetch dinámico en AuditModal.tsx con estado de carga
+// ============================================================
+const AUDIT_DOCS: AuditDoc[] = [
+  {
+    id: 'obsidian-vault',
+    waveTag: 'WAVE 2490',
+    title: 'CHRONOS TIMECODER',
+    desc: 'Criptografía offline, firmas RSA y Zero-Trust Architecture.',
+    path: '/luxsync/CHRONOS-TIMECODER-FINAL-AUDIT.md',
+  },
+  {
+    id: 'omniliquid',
+    waveTag: 'WAVE 2096',
+    title: 'OMNILIQUID ENGINE',
+    desc: 'Físicas de fluidos aplicadas al DMX. Reactividad espectral pura.',
+    path: '/luxsync/OMNILIQUID-ENGINE-AUDIT.md',
+  },
+  {
+    id: 'kinetic',
+    waveTag: 'WAVE 2095',
+    title: 'KINETIC ENGINE V2',
+    desc: 'Motores de movimiento independientes de la señal de BPM.',
+    path: '/luxsync/KINETIC-CHROMATIC-AUDIT.md',
+  },
+  {
+    id: 'sensory',
+    waveTag: 'WAVE 2090',
+    title: 'SENSORY LAYER (TRINITY AUDIO)',
+    desc: 'Captura WASAPI loopback y Worker threads aislados (Phantom Worker).',
+    path: '/luxsync/SENSORY-LAYER-AUDIT-V2.md',
+  },
+  {
+    id: 'neural',
+    waveTag: 'WAVE 2097',
+    title: 'HYPERION & THE PROGRAMMER 2D/3D',
+    desc: 'Orquestación de estados e hilos mediante TitanOrchestrator.',
+    path: '/luxsync/HYPERION-PROGRAMMER-AUDIT.md',
+  },
+  {
+    id: 'preshow',
+    waveTag: 'WAVE 2093',
+    title: 'PRE-SHOW WORKSPACE (DMX NEXUS)',
+    desc: 'Gestión de hardware USB-Serial y ArtNet con auto-recuperación.',
+    path: '/luxsync/PRE-SHOW-WORKSPACE-AUDIT.md',
+  },
+  {
+    id: 'selene',
+    waveTag: 'WAVE 2092',
+    title: 'SELENE LUX IA CORE',
+    desc: 'IA integrada para la toma de decisiones lumínicas en vivo.',
+    path: '/luxsync/SELENE-COGNITION-FINAL-AUDIT.md',
+  },
+  {
+    id: 'hephaestus',
+    waveTag: 'WAVE 2044',
+    title: 'HEPHAESTUS — EDITOR FX ENGINE',
+    desc: 'Editor de curvas de automatización DMX. Auditoría técnica completa 2026.',
+    path: '/luxsync/HEPHAESTUS-ENGINE-AUDIT.md',
+  },
 ];
 
 const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
-  const [expandedAudit, setExpandedAudit] = useState<number | null>(null);
+  const [selectedAudit, setSelectedAudit] = useState<AuditDoc | null>(null);
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -29,6 +83,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
   };
 
   return (
+    <>
     <motion.section
       className="w-full max-w-[1200px] relative z-10"
       key="luxsync-section"
@@ -94,42 +149,29 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         </div>
       </div>
 
-      {/* 3. EL ARSENAL TÉCNICO (8 AUDITORÍAS INLINE) */}
+      {/* 3. EL ARSENAL TÉCNICO (8 AUDITORÍAS → MODALES) */}
       <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-6 flex items-center gap-3">
         <span className="w-2 h-6 bg-menta"></span> Desclasificación de Arquitectura
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
-        {audits.map((audit) => (
-          <div key={audit.id} className="border border-gris-trazado/50 rounded-lg overflow-hidden bg-noche/30 backdrop-blur-sm transition-all duration-300 hover:border-menta/50">
-            <button 
-              onClick={() => setExpandedAudit(expandedAudit === audit.id ? null : audit.id)}
-              className="w-full text-left p-5 flex justify-between items-center focus:outline-none"
-            >
+        {AUDIT_DOCS.map((audit, index) => (
+          <button
+            key={audit.id}
+            onClick={() => setSelectedAudit(audit)}
+            className="text-left border border-gris-trazado/50 rounded-lg overflow-hidden bg-noche/30 backdrop-blur-sm transition-all duration-300 hover:border-menta/50 hover:bg-noche/50 cursor-pointer group focus:outline-none focus:ring-1 focus:ring-menta/40"
+          >
+            <div className="p-5 flex justify-between items-center">
               <div>
-                <p className="text-[10px] font-plex-mono text-menta/70 uppercase tracking-widest mb-1">Doc. Técnico {audit.id}/8</p>
-                <p className="text-sm font-plex-mono text-hueso">{audit.title}</p>
+                <p className="text-[10px] font-plex-mono text-menta/70 uppercase tracking-widest mb-1">
+                  Doc. Técnico {index + 1}/8 · {audit.waveTag}
+                </p>
+                <p className="text-sm font-plex-mono text-hueso group-hover:text-menta transition-colors">{audit.title}</p>
+                <p className="text-xs font-plex-sans text-gris-neutro/60 mt-1 leading-relaxed">{audit.desc}</p>
               </div>
-              <span className={`text-menta transform transition-transform duration-300 ${expandedAudit === audit.id ? 'rotate-180' : ''}`}>▼</span>
-            </button>
-            
-            <AnimatePresence>
-              {expandedAudit === audit.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="px-5 pb-5 pt-1 border-t border-gris-trazado/30"
-                >
-                  <p className="text-sm font-plex-sans text-gris-neutro leading-relaxed">
-                    {audit.desc} <br/><br/>
-                    <span className="text-menta/50 italic">[Acceso al log completo de auditoría restringido hasta el lanzamiento oficial de la Beta.]</span>
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              <span className="text-menta/40 group-hover:text-menta transition-colors ml-4 text-lg flex-shrink-0">→</span>
+            </div>
+          </button>
         ))}
       </div>
 
@@ -186,6 +228,10 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
       </button>
 
     </motion.section>
+
+    {/* AUDIT MODAL — Renderizado fuera del stacking context via Portal */}
+    <AuditModal audit={selectedAudit} onClose={() => setSelectedAudit(null)} />
+    </>
   );
 };
 

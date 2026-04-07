@@ -20,6 +20,7 @@ export interface DbCategory {
 export interface DbThread {
   id: string;
   title: string;
+  content: string;
   is_pinned: boolean;
   created_at: string;
   // Relaciones via JOIN
@@ -27,6 +28,13 @@ export interface DbThread {
   category: { name: string; slug: string } | null;
   // Contador calculado via Supabase (requires DB view or RPC)
   reply_count: number;
+}
+
+export interface DbReply {
+  id: string;
+  content: string;
+  created_at: string;
+  author: { username: string } | null;
 }
 
 // ============================================================
@@ -49,6 +57,7 @@ export async function fetchThreads(categorySlug?: string): Promise<DbThread[]> {
     .select(`
       id,
       title,
+      content,
       is_pinned,
       created_at,
       author:profiles!author_id ( username ),
@@ -86,5 +95,29 @@ export async function insertThread(payload: {
   content: string;
 }): Promise<void> {
   const { error } = await supabase.from('threads').insert(payload);
+  if (error) throw error;
+}
+
+export async function fetchReplies(threadId: string): Promise<DbReply[]> {
+  const { data, error } = await supabase
+    .from('replies')
+    .select(`
+      id,
+      content,
+      created_at,
+      author:profiles!author_id ( username )
+    `)
+    .eq('thread_id', threadId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as DbReply[];
+}
+
+export async function insertReply(payload: {
+  thread_id: string;
+  author_id: string;
+  content: string;
+}): Promise<void> {
+  const { error } = await supabase.from('replies').insert(payload);
   if (error) throw error;
 }
