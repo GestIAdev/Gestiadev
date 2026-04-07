@@ -110,7 +110,14 @@ export async function fetchReplies(threadId: string): Promise<DbReply[]> {
     .eq('thread_id', threadId)
     .order('created_at', { ascending: true });
   if (error) throw error;
-  return (data ?? []) as DbReply[];
+    if (error) throw error;
+  
+    // Mapeamos los datos: si Supabase devuelve el autor como array, cogemos el primero [0].
+    // Si lo devuelve como objeto, lo dejamos tal cual. Luego silenciamos a TS.
+    return (data ?? []).map((row: any) => ({
+      ...row,
+      author: Array.isArray(row.author) ? row.author[0] : row.author
+    })) as DbReply[];
 }
 
 export async function insertReply(payload: {
