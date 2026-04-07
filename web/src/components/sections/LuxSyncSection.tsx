@@ -16,7 +16,7 @@ interface LuxSyncSectionProps {
 // ============================================================
 const AUDIT_DOCS: AuditDoc[] = [
   {
-    id: 'obsidian-vault',
+    id: 'chronos',
     waveTag: 'WAVE 2490',
     title: 'CHRONOS TIMECODER',
     desc: 'Criptografía offline, firmas RSA y Zero-Trust Architecture.',

@@ -39,8 +39,19 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
 
       // Construir lista de candidatos para fetch, con caídas para basePath / rutas relativas
       const relative = audit.path.replace(/^\//, '');
+      // legacy map: cubre residuos antiguos que pueden haber quedado en despliegues
+      const legacyMap: Record<string, string[]> = {
+        'obsidian-vault': [
+          '/luxsync/OBSIDIAN-VAULT-AUDIT.md',
+          '/luxsync/obsidian-vault-audit.md',
+        ],
+      };
+
+      const legacyCandidates = legacyMap[audit.id] ?? [];
+
       const candidates = [
         audit.path, // absolute path as declared
+        ...legacyCandidates, // try known legacy names first
         relative, // relative to current URL
         new URL(relative, document.baseURI).href, // resolved against current document base
         window.location.origin.replace(/\/$/, '') + '/' + relative, // origin + relative
