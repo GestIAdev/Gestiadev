@@ -36,16 +36,36 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
     const fetchMarkdown = async () => {
       setIsLoading(true);
       setError(null);
-      try {
-        const response = await fetch(audit.path);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const text = await response.text();
-        setMarkdownContent(text);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar el informe');
-      } finally {
-        setIsLoading(false);
+
+      // Construir lista de candidatos para fetch, con caídas para basePath / rutas relativas
+      const relative = audit.path.replace(/^\//, '');
+      const candidates = [
+        audit.path, // absolute path as declared
+        relative, // relative to current URL
+        new URL(relative, document.baseURI).href, // resolved against current document base
+        window.location.origin.replace(/\/$/, '') + '/' + relative, // origin + relative
+      ];
+
+      let lastErr: any = null;
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status} @ ${url}`);
+          const text = await response.text();
+          setMarkdownContent(text);
+          lastErr = null;
+          break;
+        } catch (err) {
+          lastErr = err;
+          // continue to next candidate
+        }
       }
+
+      if (lastErr) {
+        setError(lastErr instanceof Error ? lastErr.message : 'Error al cargar el informe');
+      }
+
+      setIsLoading(false);
     };
 
     fetchMarkdown();
