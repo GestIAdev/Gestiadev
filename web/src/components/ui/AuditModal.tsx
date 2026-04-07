@@ -49,31 +49,42 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
 
       const legacyCandidates = legacyMap[audit.id] ?? [];
 
+      const fileName = relative.split('/').pop() ?? relative;
+      const repoRawBase = 'https://raw.githubusercontent.com/GestIAdev/Gestiadev/main/web/public/luxsync/';
+      const jsDelivrBase = 'https://cdn.jsdelivr.net/gh/GestIAdev/Gestiadev@main/web/public/luxsync/';
+
       const candidates = [
         audit.path, // absolute path as declared
         ...legacyCandidates, // try known legacy names first
         relative, // relative to current URL
         new URL(relative, document.baseURI).href, // resolved against current document base
         window.location.origin.replace(/\/$/, '') + '/' + relative, // origin + relative
+        repoRawBase + fileName, // raw.githubusercontent fallback
+        jsDelivrBase + fileName, // jsDelivr CDN fallback
       ];
 
+      const tried: string[] = [];
       let lastErr: any = null;
       for (const url of candidates) {
+        tried.push(url);
         try {
           const response = await fetch(url);
           if (!response.ok) throw new Error(`HTTP ${response.status} @ ${url}`);
           const text = await response.text();
           setMarkdownContent(text);
+          console.info('[AuditModal] fetched', url);
           lastErr = null;
           break;
         } catch (err) {
+          console.warn('[AuditModal] fetch failed', url, err);
           lastErr = err;
           // continue to next candidate
         }
       }
 
       if (lastErr) {
-        setError(lastErr instanceof Error ? lastErr.message : 'Error al cargar el informe');
+        const msg = lastErr instanceof Error ? lastErr.message : 'Error al cargar el informe';
+        setError(`${msg} — intentadas: ${tried.join(' | ')}`);
       }
 
       setIsLoading(false);
