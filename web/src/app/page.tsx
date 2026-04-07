@@ -24,6 +24,9 @@ import ArmeriaMigracionDetalle from '@/components/sections/armeria/ArmeriaMigrac
 import ArmeriaRedNomadaDetalle from '@/components/sections/armeria/ArmeriaRedNomadaDetalle';
 import DemoCyberpunkVet from '@/components/sections/armeria/DemoCyberpunkVet';
 import HolopadLaReina from '@/components/sections/HolopadLaReina';
+import LuxSyncSection from '@/components/sections/LuxSyncSection';
+import DentIAgestSection from '@/components/sections/DentIAgestSection';
+import ConclaveIndex from '@/components/sections/ConclaveIndex';
 import StarfieldSwitcher from '@/components/ui/StarfieldSwitcher';
 
 // Define view types for type safety
@@ -42,6 +45,9 @@ export type View =
   | 'contacto'
   | 'alianzas'
   | 'holopad-la-reina'
+  | 'luxsync'
+  | 'dentiagest'
+  | 'conclave'
   | 'apolloDetalle'
   | 'digitalFortressDetalle'
   | 'iaPunkDetalle'
@@ -108,6 +114,12 @@ export default function Home() {
         return <ArsenalCustomToolsDetalle setActiveView={setActiveView} />;
       case 'modularDetalle':
         return <ArsenalModularDetalle setActiveView={setActiveView} />;
+      case 'luxsync':
+        return <LuxSyncSection setActiveView={setActiveView} />;
+      case 'dentiagest':
+        return <DentIAgestSection setActiveView={setActiveView} />;
+      case 'conclave':
+        return <ConclaveIndex setActiveView={setActiveView} />;
       default:
         return <Hero setActiveView={setActiveView} />;
     }
@@ -145,8 +157,8 @@ export default function Home() {
 
       {/* Fila 2: Main (1fr) - Este es el Lienzo que scrollea */}
       <main className="relative z-10 overflow-y-auto lienzo-principal">
-        {/* Este wrapper (de Turno 64) sigue siendo correcto: empuja el contenido desde el borde (p-8) y empieza por arriba (justify-start) */}
-        <div className="w-full min-h-full flex flex-col justify-start items-center p-8">
+        {/* Wrapper principal: padding lateral generoso, vertical compacto para no robar espacio visual */}
+        <div className="w-full min-h-full flex flex-col justify-start items-center px-6 py-4">
           <AnimatePresence mode="wait">
             {renderView()}
           </AnimatePresence>

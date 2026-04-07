@@ -44,47 +44,59 @@ const ArsenalModularDetalle: React.FC<ArsenalModularProps> = ({ setActiveView })
         </p>
       </div>
 
-      {/* 3. CÓMO FUNCIONA (El "Arte": El Diagrama de Replicación) */}
-      <h3 className="text-2xl font-plex-mono mb-4 mt-4">La Prueba: El Motor "Plataforma de Gestión"</h3>
-      
-      <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50 mb-6">
-        <p className="text-center text-menta font-plex-mono text-lg mb-4">[ Diagrama de Replicación del Core ]</p>
+      {/* 3. CÓMO FUNCIONA (Diagrama de Replicación Real) */}
+      <h3 className="text-2xl font-plex-mono mb-4 mt-4">El Core Replicante en Producción</h3>
+
+      <div className="border border-gris-trazado p-5 rounded-lg bg-noche/50 mb-6">
         <div className="flex flex-col items-center">
-          
-          {/* El Core */}
-          <div className="border-2 border-menta p-4 rounded text-center shadow-lg shadow-menta/20">
-            <span className="font-plex-mono font-bold text-lg">NÚCLEO CORE (Ej: Dentalsoft)</span>
-            <p className="text-sm text-gris-neutro"> (Motor de Orquestación + Framework de Seguridad + Metodología Ágil IA + UI Kit)</p>
+
+          {/* El Núcleo */}
+          <div className="border-2 border-menta p-4 rounded-lg text-center shadow-lg shadow-menta/20 w-full max-w-md">
+            <span className="font-plex-mono font-bold text-lg text-menta">SELENE SONG CORE</span>
+            <p className="text-xs text-gris-neutro mt-1">
+              GraphQL · Zero-Dep · Consciencia Evolutiva · Framework de Seguridad · UI Kit
+            </p>
           </div>
 
-          {/* Flecha (El Motor) */}
-          <div className="text-menta font-plex-mono text-3xl my-3 transform rotate-90">➔</div>
-          <span className="text-sm text-gris-neutro -mt-4 mb-4"> (Motor de Replicación: Apollo)</span>
+          {/* Flecha descendente */}
+          <div className="text-menta font-plex-mono text-3xl my-3">↓</div>
+          <span className="text-xs text-gris-neutro -mt-2 mb-4 font-plex-mono">[ Motor de Replicación ]</span>
 
-          {/* Los Clones (Grid 3-col) */}
+          {/* Proyectos Reales */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-            <div className="border border-gris-trazado p-3 rounded text-center bg-noche/50">
-              <span className="font-plex-mono text-hueso">VeteGest (Veterinaria)</span>
-              <p className="text-xs text-gris-neutro">90% Core + 10% Custom</p>
-            </div>
-            <div className="border border-gris-trazado p-3 rounded text-center bg-noche/50">
-              <span className="font-plex-mono text-hueso">FitGest (Gimnasio)</span>
-              <p className="text-xs text-gris-neutro">90% Core + 10% Custom</p>
-            </div>
-            <div className="border border-gris-trazado p-3 rounded text-center bg-noche/50">
-              <span className="font-plex-mono text-hueso">LegalGest (Abogados)</span>
-              <p className="text-xs text-gris-neutro">90% Core + 10% Custom</p>
-            </div>
-          </div>
 
+            <div className="border border-menta/40 p-3 rounded-lg text-center bg-noche/70">
+              <span className="font-plex-mono text-menta font-bold text-sm">DentIAgest</span>
+              <p className="text-xs text-gris-neutro mt-1">App web dental · 85% completada</p>
+              <p className="text-xs text-menta/60 mt-1">Ecosystem Web3 + IA clínica</p>
+            </div>
+
+            <div className="border border-menta/40 p-3 rounded-lg text-center bg-noche/70">
+              <span className="font-plex-mono text-menta font-bold text-sm">LuxSync</span>
+              <p className="text-xs text-gris-neutro mt-1">Control DMX · Compite con GrandMA3</p>
+              <p className="text-xs text-menta/60 mt-1">Selene Lux IA (hija de Selene Song)</p>
+            </div>
+
+            <div className="border border-gris-trazado p-3 rounded-lg text-center bg-noche/50 border-dashed">
+              <span className="font-plex-mono text-gris-neutro font-bold text-sm">Próximo objetivo</span>
+              <p className="text-xs text-gris-neutro mt-1">90% Core + 10% Custom</p>
+              <p className="text-xs text-gris-neutro/50 mt-1">Cualquier industria vertical</p>
+            </div>
+
+          </div>
         </div>
       </div>
 
-
-       {/* 4. POR QUÉ GANA (El Objetivo Final) */}
-       <p className="text-lg font-plex-sans text-hueso mb-6 max-w-4xl">
-         Esta es nuestra arma de asedio a largo plazo: La <strong className="text-menta">Plataforma de Gestión</strong>. Es la capacidad de clonar nuestro "Core" y asediar cualquier industria vertical. Mientras el "establishment" tarda 1 año en construir UN producto, nosotros podemos lanzar DIEZ.
-       </p>
+      {/* 4. LA VENTAJA (El Dato Real) */}
+      <div className="border-l-4 border-menta pl-4 mb-6">
+        <p className="text-lg font-plex-sans text-hueso">
+          El mismo núcleo que gestiona historiales médicos con cifrado AES-256
+          y RGPD Artículo 9 <strong className="text-menta">se adaptó en semanas</strong> para controlar
+          iluminación DMX en tiempo real. Eso es la Arquitectura Modular en acción.
+          Mientras el "establishment" tarda 1 año en construir UN producto,
+          nosotros asediamos industrias verticales completas.
+        </p>
+      </div>
 
 
       {/* 5. COMANDO DE RETORNO */}

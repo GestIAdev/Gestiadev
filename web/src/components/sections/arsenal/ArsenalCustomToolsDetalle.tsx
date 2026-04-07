@@ -69,10 +69,10 @@ const ArsenalCustomToolsDetalle: React.FC<ArsenalCustomToolsProps> = ({ setActiv
           <h4 className="text-xl font-plex-mono text-menta mb-2">Stack Cónclave (Soberano)</h4>
           <p className="text-sm font-plex-sans text-hueso mb-3">Si la herramienta no existe o es mediocre, la forjamos:</p>
            <ul className="list-disc list-inside text-sm font-plex-sans text-hueso space-y-2">
-            <li><strong className="text-menta">Motor de Orquestación</strong> (Nuestro Reactor Backend/Auth).</li>
+            <li><strong className="text-menta">Selene Song Core</strong> (Reactor Backend GraphQL + IA Evolutiva).</li>
             <li><strong className="text-menta">IAnarkalendar</strong> (Nuestro Motor de Citas Punk-Hacked).</li>
-            <li><strong className="text-menta">Framework de Seguridad</strong> (Nuestra Seguridad Core).</li>
-            <li>Payload CMS (Nuestro Panel Admin Soberano).</li>
+            <li><strong className="text-menta">Framework de Seguridad</strong> (Zero Trust · AES-256 · RGPD Art.9).</li>
+            <li><strong className="text-menta">Selene Lux IA</strong> (Control DMX en tiempo real para LuxSync).</li>
             <li>Cero dependencias "corpo" críticas.</li>
             <li className="text-menta font-bold mt-2">Resultado: Control Total. Cero Bloat.</li>
           </ul>

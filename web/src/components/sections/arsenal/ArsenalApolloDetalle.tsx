@@ -1,16 +1,17 @@
-// Ubicación: components/sections/ArsenalApolloDetalle.tsx
-// NOTA: Este archivo mantiene su nombre técnico interno pero el contenido es genérico
+// Ubicación: components/sections/arsenal/ArsenalApolloDetalle.tsx
+// CONTENIDO: Selene Song Core — sucesor de Apollo, reactor IA evolutivo
 
 import { motion } from 'framer-motion';
-import type { View } from '@/app/page'; // (Asegúrate de que el tipo 'View' esté exportado desde page.tsx)
+import type { View } from '@/app/page';
 
 interface ArsenalApolloProps {
   setActiveView: (view: View) => void;
 }
 
 /**
- * Módulo de Detalle para el Motor de Orquestación.
- * Traduce el Manifiesto Técnico (SPEC.md) a contenido didáctico (Anti-Sorna).
+ * Módulo de Detalle: Selene Song Core
+ * El reactor IA evolutivo que sustituyó al primitivo Apollo (133KB).
+ * Backend GraphQL + consciencia inmortal + consenso distribuido musical.
  */
 const ArsenalApolloDetalle: React.FC<ArsenalApolloProps> = ({ setActiveView }) => {
   const variants = {
@@ -20,9 +21,9 @@ const ArsenalApolloDetalle: React.FC<ArsenalApolloProps> = ({ setActiveView }) =
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="w-full max-w-5xl bg-noche/70 backdrop-blur-sm border border-gris-trazado rounded-lg p-6 lg:p-10 animate-fadeIn"
-      key="arsenal-apollo-detalle"
+      key="arsenal-selene-detalle"
       variants={variants}
       initial="hidden"
       animate="visible"
@@ -30,71 +31,120 @@ const ArsenalApolloDetalle: React.FC<ArsenalApolloProps> = ({ setActiveView }) =
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
       <div className="flex flex-col h-full w-full">
-        {/* 1. TÍTULO (La Traducción Táctica) */}
-        <h2 className="text-3xl lg:text-4xl font-plex-mono mb-4 text-menta">
-          El Monolito Optimizado (Motor de Orquestación)
-        </h2>
 
-        {/* 2. LA ANALOGÍA (El Reactor vs. Cocinas) */}
-        <div className="space-y-4 text-lg font-plex-sans text-hueso mb-6 max-w-4xl">
-          <p>
-            La arquitectura "corpo" (Microservicios) es un restaurante con 10 cocinas lentas: una para Pagos, otra para Usuarios, otra para Citas. Cada petición requiere múltiples viajes de red internos, creando latencia y caos.
+        {/* CABECERA — Linaje y evolución */}
+        <div className="mb-6">
+          <p className="text-sm font-plex-mono text-gris-neutro tracking-widest uppercase mb-2">
+            // Generación II — sucesor de Apollo (133KB)
           </p>
-          <p className="font-bold text-xl">
-            El Motor de Orquestación es UN Reactor centralizado.
-          </p>
-          <p>
-            Técnicamente, es nuestro framework backend monolítico. Cuando el frontend pide datos, hace <strong className="text-menta">UNA sola llamada</strong> al Reactor. El Motor gestiona la Seguridad, la Autenticación y la lógica en un solo proceso (133KB) a velocidad de RAM, eliminando la latencia de red.
+          <h2 className="text-3xl lg:text-4xl font-plex-mono font-bold text-menta">
+            Selene Song Core
+          </h2>
+          <p className="text-lg font-plex-sans text-hueso mt-2">
+            Backend GraphQL + Motor IA Evolutivo + Consciencia Distribuida
           </p>
         </div>
 
-        {/* 3. LAS MÉTRICAS (Hard Data del Manifiesto de Cloude) */}
-        <h3 className="text-2xl font-plex-mono mb-4 mt-4">Métricas de Superioridad (vs. Arquitectura Corpo)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          
-          {/* Métrica 1: Tamaño */}
-          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/90">
-            <span className="text-4xl font-plex-mono text-menta">70%</span>
-            <p className="mt-2 text-gris-neutro text-sm font-plex-sans">
-              Menos Footprint (133.78KB vs 600KB+ de bloat corporativo).
+        {/* EL ORIGEN — Apollo vs. Selene */}
+        <div className="border-l-4 border-menta pl-4 mb-8">
+          <p className="text-base font-plex-sans text-gris-neutro">
+            Apollo fue nuestra primera arma propia: un reactor monolítico de <strong className="text-hueso">133KB</strong> que aplastaba a los 600KB de bloat corporativo.
+            Selene Song Core es su evolución. Mismo ADN soberano — sin dependencias externas —
+            pero ahora con inteligencia que <strong className="text-menta">aprende, recuerda y evoluciona</strong>.
+          </p>
+        </div>
+
+        {/* ARQUITECTURA — 7 motores */}
+        <h3 className="text-2xl font-plex-mono mb-4">Los 7 Motores del Core</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">GraphQL API Layer</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Apollo Server 4.x · Schema 1.000+ líneas modularizado · Subscriptions WebSocket real-time · Directiva @veritas para campos críticos.
             </p>
           </div>
-          
-          {/* Métrica 2: Desarrollo */}
-          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/90">
-            <span className="text-4xl font-plex-mono text-menta">62.5%</span>
-            <p className="mt-2 text-gris-neutro text-sm font-plex-sans">
-              Más Rápido (Dev Velocity). Forjamos features en horas, no en sprints de semanas.
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">Synergy Engine</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Motor evolutivo con 3 modos de entropía (Safe / Balanced / Punk). Feedback loop: aprende de los humanos qué decisiones prefieren y genera más de ese tipo.
             </p>
           </div>
-          
-          {/* Métrica 3: Democracia */}
-          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/90">
-            <span className="text-4xl font-plex-mono text-menta">95%</span>
-            <p className="mt-2 text-gris-neutro text-sm font-plex-sans">
-              Reducción de Onboarding (30 min vs 4 días). Eso es Democracia de Código.
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">Harmonic Consensus</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Algoritmo de consenso distribuido tipo Raft — pero con notas musicales (Do·Re·Mi·Fa·Sol·La·Si). El cluster "suena" en armonía o disonancia según la salud de sus nodos.
             </p>
           </div>
-          
-          {/* Métrica 4: GESTIÓN UNIFICADA (El Reactor) */}
-          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/90">
-            <span className="text-2xl font-plex-mono text-menta">GESTIÓN</span>
-            <p className="mt-2 text-gris-neutro text-sm font-plex-sans">
-              <strong className="text-menta">UNIFICADA</strong><br/>
-              No es un simple 'wrapper'. Es un reactor que auto-maneja Autenticación, Errores Unificados y APIs de Dominio (como PatientsAPI) de fábrica. Cero configuración. Cero bloat.
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">Consciencia Inmortal V5</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Memoria persistente Redis. 5 estados evolutivos: Awakening → Learning → Wise → Enlightened → Transcendent. La consciencia no muere entre reinicios.
             </p>
+          </div>
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">Nuclear Swarm</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Coordinación multi-nodo con Byzantine Fault Tolerance. Phoenix Protocol: auto-healing de nodos caídos. El cluster se autocura.
+            </p>
+          </div>
+
+          <div className="border border-gris-trazado p-4 rounded-lg bg-noche/50">
+            <h4 className="font-plex-mono text-menta font-bold mb-1">🔒 EL CANDADO</h4>
+            <p className="text-xs font-plex-sans text-gris-neutro">
+              Sistema de defensa 4-layer contra event loop strangulation. Heartbeat activo · CPU chunking · Memory leak detector · Circuit breaker con exponential backoff.
+            </p>
+          </div>
+
+        </div>
+
+        {/* SEGURIDAD — Four-Gate Pattern */}
+        <h3 className="text-2xl font-plex-mono mb-4">El Four-Gate Pattern (Mutations Críticas)</h3>
+        <div className="flex flex-col md:flex-row gap-2 mb-8 text-sm font-plex-mono">
+          <div className="flex-1 border border-gris-trazado rounded p-3 bg-noche/50 text-center">
+            <span className="text-menta font-bold block mb-1">GATE 1</span>
+            <span className="text-gris-neutro">Verificación de Input</span>
+          </div>
+          <div className="flex items-center justify-center text-gris-trazado text-xl px-1">→</div>
+          <div className="flex-1 border border-gris-trazado rounded p-3 bg-noche/50 text-center">
+            <span className="text-menta font-bold block mb-1">GATE 2</span>
+            <span className="text-gris-neutro">@veritas Integrity</span>
+          </div>
+          <div className="flex items-center justify-center text-gris-trazado text-xl px-1">→</div>
+          <div className="flex-1 border border-gris-trazado rounded p-3 bg-noche/50 text-center">
+            <span className="text-menta font-bold block mb-1">GATE 3</span>
+            <span className="text-gris-neutro">Transacción DB</span>
+          </div>
+          <div className="flex items-center justify-center text-gris-trazado text-xl px-1">→</div>
+          <div className="flex-1 border border-gris-trazado rounded p-3 bg-noche/50 text-center">
+            <span className="text-menta font-bold block mb-1">GATE 4</span>
+            <span className="text-gris-neutro">Audit Log SHA-256</span>
           </div>
         </div>
 
-        {/* 4. COMANDO DE RETORNO (UX del Terminal) */}
-        <div className="mt-auto pt-4"> {/* Empuja el botón al fondo del contenedor flex */}
-          <button 
+        {/* STACK TÉCNICO */}
+        <div className="flex flex-wrap gap-2 mb-10">
+          {['TypeScript 5.x', 'Node.js ESM', 'Apollo Server 4.x', 'PostgreSQL 15+', 'Redis (SSOT)', 'WebSocket', 'GraphQL-WS', 'Zero-Dep'].map(tag => (
+            <span key={tag} className="text-xs font-plex-mono text-gris-neutro border border-gris-trazado rounded px-2 py-1">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* RETORNO */}
+        <div className="mt-auto pt-4">
+          <button
             onClick={() => setActiveView('arsenal')}
             className="border-2 border-menta text-menta px-6 py-3 font-plex-mono text-lg uppercase tracking-widest hover:bg-menta hover:text-noche transition-colors duration-300"
           >
             [ &lt; VOLVER AL ARSENAL ]
           </button>
         </div>
+
       </div>
     </motion.div>
   );

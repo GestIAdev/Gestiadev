@@ -1,0 +1,90 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// ============================================================
+// TIPOS DE BASE DE DATOS
+// ============================================================
+export interface DbCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  slug: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DbThread {
+  id: string;
+  title: string;
+  is_pinned: boolean;
+  created_at: string;
+  // Relaciones via JOIN
+  author: { username: string } | null;
+  category: { name: string; slug: string } | null;
+  // Contador calculado via Supabase (requires DB view or RPC)
+  reply_count: number;
+}
+
+// ============================================================
+// QUERIES — WAVE 2506
+// ============================================================
+
+export async function fetchCategories(): Promise<DbCategory[]> {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchThreads(categorySlug?: string): Promise<DbThread[]> {
+  // El join usa el nombre FK definido en el schema
+  let query = supabase
+    .from('threads')
+    .select(`
+      id,
+      title,
+      is_pinned,
+      created_at,
+      author:profiles!author_id ( username ),
+      category:categories!category_id ( name, slug ),
+      reply_count:replies ( count )
+    `)
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (categorySlug) {
+    // Filtramos via subquery en la tabla relacionada
+    const { data: cat } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', categorySlug)
+      .single();
+    if (cat) query = query.eq('category_id', cat.id);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Normalizar el count que Supabase devuelve como array [{count: N}]
+  return (data ?? []).map((row: any) => ({
+    ...row,
+    reply_count: Array.isArray(row.reply_count) ? (row.reply_count[0]?.count ?? 0) : (row.reply_count ?? 0),
+  }));
+}
+
+export async function insertThread(payload: {
+  category_id: string;
+  author_id: string;
+  title: string;
+  content: string;
+}): Promise<void> {
+  const { error } = await supabase.from('threads').insert(payload);
+  if (error) throw error;
+}

@@ -1,0 +1,192 @@
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { View } from '@/app/page';
+
+interface LuxSyncSectionProps {
+  setActiveView: (view: View) => void;
+}
+
+const audits = [
+  { id: 1, title: 'WAVE 2490 — THE OBSIDIAN VAULT', desc: 'Criptografía offline, firmas RSA y Zero-Trust Architecture.' },
+  { id: 2, title: 'WAVE 2096 — OMNILIQUID ENGINE', desc: 'Físicas de fluidos aplicadas al DMX. Reactividad espectral pura.' },
+  { id: 3, title: 'WAVE 2050 — KINETIC CHROMATIC', desc: 'Motores de movimiento independientes de la señal de BPM.' },
+  { id: 4, title: 'WAVE 1003 — TRINITY AUDIO', desc: 'Captura WASAPI loopback y Worker threads aislados (Phantom Worker).' },
+  { id: 5, title: 'WAVE 2097 — NEURAL COMMANDER', desc: 'Orquestación de estados e hilos mediante TitanOrchestrator.' },
+  { id: 6, title: 'WAVE 1203 — DMX NEXUS', desc: 'Gestión de hardware USB-Serial y ArtNet con auto-recuperación.' },
+  { id: 7, title: 'WAVE 2495 — SELENE CORE', desc: 'IA integrada para la toma de decisiones lumínicas en vivo.' },
+  { id: 8, title: 'WAVE 0000 — COMPLIANCE & LEGAL', desc: 'Auditoría de licencias, MIT, y protección de propiedad intelectual.' },
+];
+
+const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
+  const [expandedAudit, setExpandedAudit] = useState<number | null>(null);
+
+  const variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+  };
+
+  return (
+    <motion.section
+      className="w-full max-w-[1200px] relative z-10"
+      key="luxsync-section"
+      variants={variants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+    >
+      {/* 1. GLASSMORPHIC HERO CARD — 3D PANORAMIC RENDER AS BACKGROUND */}
+      <div 
+        className="relative mb-12 rounded-lg overflow-hidden border border-menta/20 h-[200px] md:h-[280px] bg-cover bg-center"
+        style={{
+          backgroundImage: 'url(/luxsync/interpreted_vector_logo.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Gradient Overlay — Garantiza legibilidad */}
+        <div className="absolute inset-0 bg-gradient-to-t from-noche via-transparent to-transparent opacity-80"></div>
+
+        {/* Badge: Top-Left — Especificación / Fecha */}
+        <div className="absolute top-6 left-6 flex items-center gap-2 border border-menta/40 rounded-full px-4 py-2 bg-noche/40 backdrop-blur-sm shadow-[0_0_15px_rgba(0,229,255,0.1)]">
+          <span className="text-xs font-plex-mono text-menta/80 tracking-[0.3em] uppercase">
+            // Beta cerrada · Abril 2026
+          </span>
+        </div>
+
+        {/* Badge: Top-Right — Live Status */}
+        <div className="absolute top-6 right-6 flex items-center gap-2 border border-menta/40 rounded-full px-4 py-2 bg-noche/40 backdrop-blur-sm shadow-[0_0_15px_rgba(0,229,255,0.1)]">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-menta opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-menta"></span>
+          </span>
+          <span className="text-sm font-plex-mono text-menta uppercase tracking-wider">Beta Activa</span>
+        </div>
+      </div>
+
+      {/* 2. ÁREA DE VÍDEO Y STATS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="lg:col-span-2 border border-menta/20 rounded-xl bg-noche/60 backdrop-blur-md flex flex-col items-center justify-center min-h-[360px] gap-3 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50"></div>
+          <div className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80">
+            ▶
+          </div>
+          <p className="font-plex-mono text-hueso text-lg z-10 mt-2 tracking-widest">VER DEMOSTRACIÓN EN VIVO</p>
+          <p className="font-plex-sans text-menta/60 text-sm z-10">Próximamente (Preparando el escenario...)</p>
+        </div>
+
+        <div className="flex flex-col gap-4 justify-between">
+          {[
+            { label: 'Auditorías Técnicas', value: '8', sub: 'Protocolo de Transparencia' },
+            { label: 'Dependencias', value: '0', sub: '100% Código Nativo' },
+            { label: 'Universo DMX', value: '512', sub: 'Canales en Tiempo Real' },
+            { label: 'Físicas Reactivas', value: '7.1', sub: 'Bandas de Frecuencia' },
+          ].map((stat) => (
+            <div key={stat.label} className="border border-gris-trazado rounded-lg p-4 bg-noche/40 backdrop-blur-sm hover:border-menta/40 transition-colors">
+              <p className="text-xs font-plex-mono text-gris-neutro mb-1 uppercase tracking-wider">{stat.label}</p>
+              <p className="text-2xl font-plex-mono font-bold text-hueso">{stat.value}</p>
+              <p className="text-xs font-plex-sans text-menta/60">{stat.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. EL ARSENAL TÉCNICO (8 AUDITORÍAS INLINE) */}
+      <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-6 flex items-center gap-3">
+        <span className="w-2 h-6 bg-menta"></span> Desclasificación de Arquitectura
+      </h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
+        {audits.map((audit) => (
+          <div key={audit.id} className="border border-gris-trazado/50 rounded-lg overflow-hidden bg-noche/30 backdrop-blur-sm transition-all duration-300 hover:border-menta/50">
+            <button 
+              onClick={() => setExpandedAudit(expandedAudit === audit.id ? null : audit.id)}
+              className="w-full text-left p-5 flex justify-between items-center focus:outline-none"
+            >
+              <div>
+                <p className="text-[10px] font-plex-mono text-menta/70 uppercase tracking-widest mb-1">Doc. Técnico {audit.id}/8</p>
+                <p className="text-sm font-plex-mono text-hueso">{audit.title}</p>
+              </div>
+              <span className={`text-menta transform transition-transform duration-300 ${expandedAudit === audit.id ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+            
+            <AnimatePresence>
+              {expandedAudit === audit.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="px-5 pb-5 pt-1 border-t border-gris-trazado/30"
+                >
+                  <p className="text-sm font-plex-sans text-gris-neutro leading-relaxed">
+                    {audit.desc} <br/><br/>
+                    <span className="text-menta/50 italic">[Acceso al log completo de auditoría restringido hasta el lanzamiento oficial de la Beta.]</span>
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+      </div>
+
+      {/* 4. FOUNDER'S FORGE (LA VENTA) */}
+      <div className="border border-menta/30 rounded-2xl p-8 bg-gradient-to-b from-menta/5 to-transparent mb-12 text-center">
+        <h2 className="text-3xl font-plex-mono font-bold text-hueso mb-4">Acceso a la Beta de LuxSync</h2>
+        <p className="text-base font-plex-sans text-gris-neutro max-w-2xl mx-auto mb-8">
+          LuxSync no se vende en masa. Cada licencia es forjada localmente y validada mediante criptografía RSA. 
+          Al adquirir un Founder Pack, financias el desarrollo y obtienes soporte directo (sistema de tickets in-app en desarrollo).
+        </p>
+        
+        <div className="flex flex-col md:flex-row justify-center gap-6 max-w-4xl mx-auto">
+          {/* DJ Founder Tier */}
+          <div className="flex-1 border border-gris-trazado rounded-xl p-6 bg-noche hover:border-yellow-500/50 transition-colors text-left flex flex-col">
+            <h3 className="text-xl font-plex-mono text-yellow-500 mb-2">DJ FOUNDER</h3>
+            <p className="text-3xl font-bold text-hueso mb-4">$150 <span className="text-sm text-gris-neutro font-normal">/ pago único</span></p>
+            <ul className="text-sm font-plex-sans text-gris-neutro space-y-2 mb-8 flex-1">
+              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Control de luces reactivo (Selene IA)</li>
+              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Acceso al Motor Omniliquid</li>
+              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Soporte directo fundador</li>
+              <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin acceso a Hephaestus FX</li>
+              <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin Chronos Studio Timeline</li>
+            </ul>
+            <button className="w-full py-3 border border-yellow-500/50 text-yellow-500 font-plex-mono text-sm rounded hover:bg-yellow-500/10 transition-colors">
+              Solicitar Licencia
+            </button>
+          </div>
+
+          {/* Full Suite Tier */}
+          <div className="flex-1 border border-menta rounded-xl p-6 bg-noche shadow-[0_0_30px_rgba(0,229,255,0.05)] hover:shadow-[0_0_40px_rgba(0,229,255,0.15)] transition-all text-left flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-menta text-noche text-xs font-bold px-3 py-1 font-plex-mono">PRO</div>
+            <h3 className="text-xl font-plex-mono text-menta mb-2">FULL SUITE</h3>
+            <p className="text-3xl font-bold text-hueso mb-4">$350 <span className="text-sm text-gris-neutro font-normal">/ pago único</span></p>
+            <ul className="text-sm font-plex-sans text-gris-neutro space-y-2 mb-8 flex-1">
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Todo lo incluido en DJ Founder</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Desbloqueo Hephaestus (Automatización FX)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Desbloqueo Chronos Studio (Timeline editor)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> 2 Activaciones (Estudio + Directo)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Actualizaciones de por vida</li>
+            </ul>
+            <button className="w-full py-3 bg-menta text-noche font-bold font-plex-mono text-sm rounded hover:bg-[#00cce6] transition-colors">
+              Solicitar Licencia PRO
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* RETORNO */}
+      <button
+        onClick={() => setActiveView('armeria')}
+        className="border border-gris-trazado text-gris-neutro px-5 py-2 font-plex-mono text-sm hover:border-menta hover:text-menta transition-colors duration-200"
+      >
+        ← RETORNAR A LA ARMERÍA
+      </button>
+
+    </motion.section>
+  );
+};
+
+export default LuxSyncSection;
