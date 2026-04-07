@@ -73,8 +73,40 @@ const AUDIT_DOCS: AuditDoc[] = [
   },
 ];
 
+// ============================================================
+// DEMO_RECORDS — Playlist del Showcase Player Facade
+// ============================================================
+const DEMO_RECORDS = [
+  {
+    id: 'demo-omniliquid',
+    title: 'OMNILIQUID ENGINE',
+    desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
+    youtubeId: '',
+  },
+  {
+    id: 'demo-chronos',
+    title: 'CHRONOS TIMECODER',
+    desc: 'Criptografía RSA offline y Zero-Trust Architecture aplicados a timeline DMX.',
+    youtubeId: '',
+  },
+  {
+    id: 'demo-selene',
+    title: 'SELENE IA CORE',
+    desc: 'IA en vivo para toma de decisiones lumínicas autónomas, latencia sub-frame.',
+    youtubeId: '',
+  },
+  {
+    id: 'demo-hephaestus',
+    title: 'HEPHAESTUS FX',
+    desc: 'Editor de curvas de automatización DMX con render vectorial de alta precisión.',
+    youtubeId: '',
+  },
+];
+
 const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
   const [selectedAudit, setSelectedAudit] = useState<AuditDoc | null>(null);
+  const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -124,15 +156,68 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
 
       {/* 2. ÁREA DE VÍDEO Y STATS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        <div className="lg:col-span-2 border border-menta/20 rounded-xl bg-noche/60 backdrop-blur-md flex flex-col items-center justify-center min-h-[360px] gap-3 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50"></div>
-          <div className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80">
-            ▶
+        {/* Columna izquierda — Showcase Player Facade */}
+        <div className="lg:col-span-2 flex flex-col gap-3">
+          {/* Player principal */}
+          <div className="border border-menta/20 rounded-xl bg-noche/60 backdrop-blur-md overflow-hidden relative min-h-[360px] group">
+            {!isVideoPlaying ? (
+              /* Estado inactivo: Facade con botón de Play */
+              <div className="flex flex-col items-center justify-center h-full min-h-[360px] gap-3 relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
+                <button
+                  onClick={() => {
+                    if (DEMO_RECORDS[activeDemoIndex].youtubeId) setIsVideoPlaying(true);
+                  }}
+                  className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
+                >
+                  ▶
+                </button>
+                <p className="font-plex-mono text-hueso text-lg z-10 mt-2 tracking-widest">
+                  {DEMO_RECORDS[activeDemoIndex].title}
+                </p>
+                <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center px-4">
+                  {DEMO_RECORDS[activeDemoIndex].youtubeId
+                    ? DEMO_RECORDS[activeDemoIndex].desc
+                    : 'Próximamente (Preparando el escenario...)'}
+                </p>
+              </div>
+            ) : (
+              /* Estado activo: iframe de YouTube */
+              <iframe
+                className="w-full h-full absolute inset-0"
+                style={{ minHeight: '360px' }}
+                src={`https://www.youtube-nocookie.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                title={DEMO_RECORDS[activeDemoIndex].title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            )}
           </div>
-          <p className="font-plex-mono text-hueso text-lg z-10 mt-2 tracking-widest">VER DEMOSTRACIÓN EN VIVO</p>
-          <p className="font-plex-sans text-menta/60 text-sm z-10">Próximamente (Preparando el escenario...)</p>
+
+          {/* Lista de miniaturas / selector de demos */}
+          <div className="overflow-x-auto">
+            <div className="flex gap-2 pb-1">
+              {DEMO_RECORDS.map((demo, index) => (
+                <button
+                  key={demo.id}
+                  onClick={() => { setActiveDemoIndex(index); setIsVideoPlaying(false); }}
+                  className={`flex-shrink-0 text-left px-4 py-3 rounded-lg border transition-all duration-200 min-w-[160px] max-w-[200px]
+                    ${activeDemoIndex === index
+                      ? 'border-menta bg-menta/10 text-menta'
+                      : 'border-gris-trazado/50 bg-noche/40 text-gris-neutro hover:border-menta/40 hover:text-hueso'
+                    }`}
+                >
+                  <p className="text-[10px] font-plex-mono uppercase tracking-widest mb-1 opacity-60">
+                    Demo {index + 1}/4
+                  </p>
+                  <p className="text-xs font-plex-mono font-bold leading-tight">{demo.title}</p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
+        {/* Columna derecha — Stats (sin cambios) */}
         <div className="flex flex-col gap-4 justify-between">
           {[
             { label: 'Auditorías Técnicas', value: '8', sub: 'Protocolo de Transparencia' },
