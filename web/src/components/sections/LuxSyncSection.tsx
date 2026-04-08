@@ -159,10 +159,10 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         {/* Columna izquierda — Showcase Player Facade */}
         <div className="lg:col-span-2 flex flex-col gap-3">
           {/* EL REPRODUCTOR FACADE */}
-          <div className={`border border-menta/20 rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md' : 'bg-black'}`}>
+          <div className={`border border-menta/20 flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden' : 'bg-black'}`}>
             {!isVideoPlaying ? (
               /* Estado inactivo: Facade con botón de Play */
-              <div className="flex flex-col items-center justify-center h-full min-h-[360px] gap-3 relative">
+              <div className="flex flex-col items-center justify-center h-full w-full min-h-[360px] gap-3 relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
                 <button
                   onClick={() => {
@@ -182,13 +182,14 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                 </p>
               </div>
             ) : (
-              /* Estado activo: reproductor nativo HTML5 */
+              /* Estado activo: reproductor nativo HTML5 (SIN MÁSCARAS) */
               <video
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full bg-black outline-none"
                 src={DEMO_RECORDS[activeDemoIndex].videoUrl}
                 autoPlay
                 controls
                 playsInline
+                style={{ objectFit: 'contain' }}
               />
             )}
           </div>
