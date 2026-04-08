@@ -108,6 +108,24 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
   const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
+  // Función sanitizadora para extraer YouTube ID de múltiples formatos
+  const getYoutubeId = (url: string): string => {
+    if (!url || typeof url !== 'string') return '';
+    
+    // Formato corto: https://youtu.be/{ID}
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+    if (shortMatch?.[1]) return shortMatch[1];
+    
+    // Formato estándar: https://www.youtube.com/watch?v={ID}
+    const longMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+    if (longMatch?.[1]) return longMatch[1];
+    
+    // ID puro de 11 caracteres
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    
+    return '';
+  };
+
   const variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -166,7 +184,8 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
                 <button
                   onClick={() => {
-                    if (DEMO_RECORDS[activeDemoIndex].youtubeId) setIsVideoPlaying(true);
+                    const sanitizedId = getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId);
+                    if (sanitizedId) setIsVideoPlaying(true);
                   }}
                   className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
                 >
@@ -186,7 +205,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
               <iframe
                 className="w-full h-full absolute inset-0"
                 style={{ minHeight: '360px' }}
-                src={`https://www.youtube-nocookie.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                src={`https://www.youtube-nocookie.com/embed/${getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
                 title={DEMO_RECORDS[activeDemoIndex].title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
