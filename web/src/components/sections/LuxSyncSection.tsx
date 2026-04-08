@@ -144,39 +144,25 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         {/* COLUMNA IZQUIERDA: REPRODUCTOR Y PLAYLIST */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           
-          {/* EL REPRODUCTOR (REFABRICADO A PRUEBA DE FALLOS) */}
-          <div className={!isVideoPlaying ? 'border border-menta/20 bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group' : 'bg-black w-full aspect-video flex'}>
-            
-            {!isVideoPlaying ? (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
-                <button
-                  onClick={() => {
-                    if (DEMO_RECORDS[activeDemoIndex].videoUrl) setIsVideoPlaying(true);
-                  }}
-                  className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
-                >
-                  ▶
-                </button>
-                <p className="font-plex-mono text-hueso text-lg z-10 mt-4 tracking-widest">
-                  {DEMO_RECORDS[activeDemoIndex].title}
-                </p>
-                <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center">
-                  {DEMO_RECORDS[activeDemoIndex].videoUrl
-                    ? DEMO_RECORDS[activeDemoIndex].desc
-                    : 'Próximamente (Preparando el escenario...)'}
-                </p>
-              </>
-            ) : (
-              /* VÍDEO NATIVO: Sin absolute, fluyendo con aspect-video */
-              <video
-                className="w-full h-full outline-none"
-                src={DEMO_RECORDS[activeDemoIndex].videoUrl}
-                autoPlay
-                controls
-                playsInline
-              />
-            )}
+          {/* EL REPRODUCTOR (FACADE ESTÁTICO - POSTER + BOTÓN PLAY) */}
+          <div className="border border-menta/20 bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group">
+            <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
+            <button
+              onClick={() => {
+                if (DEMO_RECORDS[activeDemoIndex].videoUrl) setIsVideoPlaying(true);
+              }}
+              className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
+            >
+              ▶
+            </button>
+            <p className="font-plex-mono text-hueso text-lg z-10 mt-4 tracking-widest">
+              {DEMO_RECORDS[activeDemoIndex].title}
+            </p>
+            <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center">
+              {DEMO_RECORDS[activeDemoIndex].videoUrl
+                ? DEMO_RECORDS[activeDemoIndex].desc
+                : 'Próximamente (Preparando el escenario...)'}
+            </p>
           </div>
 
           {/* Lista de miniaturas / selector de demos */}
@@ -298,6 +284,28 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
       </button>
 
     </section>
+
+    {/* CINEMA OVERLAY (Bypass del Fullscreen Nativo) */}
+    {isVideoPlaying && DEMO_RECORDS[activeDemoIndex].videoUrl && (
+      <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
+        <button
+          onClick={() => setIsVideoPlaying(false)}
+          className="absolute top-6 right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-sm border border-menta/30 hover:border-menta px-4 py-2 rounded transition-colors bg-noche/50 backdrop-blur-sm"
+        >
+          [ X ] CERRAR TRANSMISIÓN
+        </button>
+
+        <video
+          className="w-full h-full max-h-screen outline-none"
+          style={{ objectFit: 'contain' }}
+          src={DEMO_RECORDS[activeDemoIndex].videoUrl}
+          autoPlay
+          controls
+          controlsList="nofullscreen"
+          playsInline
+        />
+      </div>
+    )}
 
     {/* AUDIT MODAL — Renderizado fuera del stacking context via Portal */}
     <AuditModal audit={selectedAudit} onClose={() => setSelectedAudit(null)} />
