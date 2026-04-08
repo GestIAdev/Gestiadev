@@ -81,25 +81,25 @@ const DEMO_RECORDS = [
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
     desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
-    youtubeId: 'https://youtu.be/R4xuVW0M4xU',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquidnoia.mp4',
   },
   {
     id: 'demo-chronos',
     title: 'CHRONOS TIMECODER',
     desc: 'Criptografía RSA offline y Zero-Trust Architecture aplicados a timeline DMX.',
-    youtubeId: '',
+    videoUrl: '',
   },
   {
     id: 'demo-selene',
     title: 'SELENE IA CORE',
     desc: 'IA en vivo para toma de decisiones lumínicas autónomas, latencia sub-frame.',
-    youtubeId: '',
+    videoUrl: '',
   },
   {
     id: 'demo-hephaestus',
     title: 'HEPHAESTUS FX',
     desc: 'Editor de curvas de automatización DMX con render vectorial de alta precisión.',
-    youtubeId: '',
+    videoUrl: '',
   },
 ];
 
@@ -107,24 +107,6 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
   const [selectedAudit, setSelectedAudit] = useState<AuditDoc | null>(null);
   const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
-
-  // Función sanitizadora para extraer YouTube ID de múltiples formatos
-  const getYoutubeId = (url: string): string => {
-    if (!url || typeof url !== 'string') return '';
-    
-    // Formato corto: https://youtu.be/{ID}
-    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-    if (shortMatch?.[1]) return shortMatch[1];
-    
-    // Formato estándar: https://www.youtube.com/watch?v={ID}
-    const longMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
-    if (longMatch?.[1]) return longMatch[1];
-    
-    // ID puro de 11 caracteres
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
-    
-    return '';
-  };
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -177,15 +159,14 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         {/* Columna izquierda — Showcase Player Facade */}
         <div className="lg:col-span-2 flex flex-col gap-3">
           {/* EL REPRODUCTOR FACADE */}
-          <div className={`lg:col-span-2 border border-menta/20 flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden' : 'bg-black'}`}>
+          <div className={`border border-menta/20 rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md' : 'bg-black'}`}>
             {!isVideoPlaying ? (
               /* Estado inactivo: Facade con botón de Play */
               <div className="flex flex-col items-center justify-center h-full min-h-[360px] gap-3 relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
                 <button
                   onClick={() => {
-                    const sanitizedId = getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId);
-                    if (sanitizedId) setIsVideoPlaying(true);
+                    if (DEMO_RECORDS[activeDemoIndex].videoUrl) setIsVideoPlaying(true);
                   }}
                   className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
                 >
@@ -195,20 +176,19 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                   {DEMO_RECORDS[activeDemoIndex].title}
                 </p>
                 <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center px-4">
-                  {DEMO_RECORDS[activeDemoIndex].youtubeId
+                  {DEMO_RECORDS[activeDemoIndex].videoUrl
                     ? DEMO_RECORDS[activeDemoIndex].desc
                     : 'Próximamente (Preparando el escenario...)'}
                 </p>
               </div>
             ) : (
-              /* Estado activo: iframe de YouTube */
-              <iframe
-                className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube.com/embed/${getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
-                title={DEMO_RECORDS[activeDemoIndex].title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
+              /* Estado activo: reproductor nativo HTML5 */
+              <video
+                className="absolute inset-0 w-full h-full object-cover"
+                src={DEMO_RECORDS[activeDemoIndex].videoUrl}
+                autoPlay
+                controls
+                playsInline
               />
             )}
           </div>
