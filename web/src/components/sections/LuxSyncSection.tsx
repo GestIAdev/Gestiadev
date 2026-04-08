@@ -81,7 +81,7 @@ const DEMO_RECORDS = [
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
     desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
-    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Omniliquidnoia.mp4',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquidnoselene.mp4',
   },
   {
     id: 'demo-chronos',
