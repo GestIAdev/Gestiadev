@@ -156,13 +156,14 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
 
       {/* 2. ÁREA DE VÍDEO Y STATS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        {/* Columna izquierda — Showcase Player Facade */}
-        <div className="lg:col-span-2 flex flex-col gap-3">
-          {/* EL REPRODUCTOR FACADE */}
-          <div className={`border border-menta/20 flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden' : 'bg-black'}`}>
+        {/* COLUMNA IZQUIERDA: REPRODUCTOR Y PLAYLIST */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          
+          {/* EL REPRODUCTOR (REFABRICADO A PRUEBA DE FALLOS) */}
+          <div className={`border border-menta/20 transition-all ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group' : 'bg-black w-full aspect-video flex'}`}>
+            
             {!isVideoPlaying ? (
-              /* Estado inactivo: Facade con botón de Play */
-              <div className="flex flex-col items-center justify-center h-full w-full min-h-[360px] gap-3 relative">
+              <>
                 <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
                 <button
                   onClick={() => {
@@ -172,28 +173,24 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                 >
                   ▶
                 </button>
-                <p className="font-plex-mono text-hueso text-lg z-10 mt-2 tracking-widest">
+                <p className="font-plex-mono text-hueso text-lg z-10 mt-4 tracking-widest">
                   {DEMO_RECORDS[activeDemoIndex].title}
                 </p>
-                <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center px-4">
+                <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center">
                   {DEMO_RECORDS[activeDemoIndex].videoUrl
                     ? DEMO_RECORDS[activeDemoIndex].desc
                     : 'Próximamente (Preparando el escenario...)'}
                 </p>
-              </div>
+              </>
             ) : (
-              /* Estado activo: reproductor nativo HTML5 (SIN MÁSCARAS) */
+              /* VÍDEO NATIVO: Sin absolute, fluyendo con aspect-video */
               <video
-                className="absolute inset-0 w-full h-full bg-black outline-none"
+                className="w-full h-full outline-none"
                 src={DEMO_RECORDS[activeDemoIndex].videoUrl}
                 autoPlay
                 controls
                 playsInline
-                style={{ 
-                  objectFit: 'contain', 
-                  WebkitTransform: 'translateZ(0)', 
-                  willChange: 'transform' 
-                }}
+                style={{ WebkitTransform: 'translateZ(0)' }}
               />
             )}
           </div>
