@@ -84,8 +84,8 @@ const DEMO_RECORDS = [
     desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
     // videoUrl: URL directa .mp4/.webm para PunkCanvasPlayer (sin Hardware Overlay)
     // youtubeId: fallback si videoUrl está vacío
-    videoUrl: '',
-    youtubeId: 'R4xuVW0M4xU',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquidnoselene.mp4',
+    youtubeId: '',
   },
   {
     id: 'demo-chronos',
