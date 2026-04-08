@@ -109,7 +109,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
 
   return (
     <>
-    <section className="w-full max-w-[1200px] relative z-10 animate-in fade-in duration-500 zoom-in-95">
+    <section className="w-full max-w-[1200px] relative z-10">
       {/* 1. GLASSMORPHIC HERO CARD — 3D PANORAMIC RENDER AS BACKGROUND */}
       <div 
         className="relative mb-12 rounded-lg overflow-hidden border border-menta/20 h-[200px] md:h-[280px] bg-cover bg-center"
@@ -145,7 +145,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         <div className="lg:col-span-2 flex flex-col gap-4">
           
           {/* EL REPRODUCTOR (REFABRICADO A PRUEBA DE FALLOS) */}
-          <div className={`border border-menta/20 transition-all ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group' : 'bg-black w-full aspect-video flex'}`}>
+          <div className={!isVideoPlaying ? 'border border-menta/20 bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group' : 'bg-black w-full aspect-video flex'}>
             
             {!isVideoPlaying ? (
               <>
