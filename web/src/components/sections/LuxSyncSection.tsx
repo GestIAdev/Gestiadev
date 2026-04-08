@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import type { View } from '@/app/page';
 import AuditModal, { type AuditDoc } from '@/components/ui/AuditModal';
 
@@ -108,23 +107,9 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
   const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
 
-  const variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-
   return (
     <>
-    <motion.section
-      className="w-full max-w-[1200px] relative z-10"
-      key="luxsync-section"
-      variants={variants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-    >
+    <section className="w-full max-w-[1200px] relative z-10 animate-in fade-in duration-500 zoom-in-95">
       {/* 1. GLASSMORPHIC HERO CARD — 3D PANORAMIC RENDER AS BACKGROUND */}
       <div 
         className="relative mb-12 rounded-lg overflow-hidden border border-menta/20 h-[200px] md:h-[280px] bg-cover bg-center"
@@ -190,7 +175,6 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                 autoPlay
                 controls
                 playsInline
-                style={{ WebkitTransform: 'translateZ(0)' }}
               />
             )}
           </div>
@@ -313,7 +297,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         ← RETORNAR A LA ARMERÍA
       </button>
 
-    </motion.section>
+    </section>
 
     {/* AUDIT MODAL — Renderizado fuera del stacking context via Portal */}
     <AuditModal audit={selectedAudit} onClose={() => setSelectedAudit(null)} />
