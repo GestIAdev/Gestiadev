@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { View } from '@/app/page';
 import AuditModal, { type AuditDoc } from '@/components/ui/AuditModal';
 import PunkCanvasPlayer from '@/components/ui/PunkCanvasPlayer';
@@ -154,51 +153,108 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         {/* COLUMNA IZQUIERDA: REPRODUCTOR Y PLAYLIST */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           
-          {/* EL REPRODUCTOR (FACADE ESTÁTICO - POSTER + BOTÓN PLAY) */}
-          <div className="border border-menta/20 bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden flex flex-col items-center justify-center min-h-[360px] relative group">
-            <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
-            <button
-              onClick={() => {
-                const demo = DEMO_RECORDS[activeDemoIndex];
-                if (demo.videoUrl) {
-                  setPlayerMode('canvas');
-                  setIsVideoPlaying(true);
-                } else if (demo.youtubeId) {
-                  setPlayerMode('youtube');
-                  setIsVideoPlaying(true);
-                }
-              }}
-              className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
-            >
-              ▶
-            </button>
-            <p className="font-plex-mono text-hueso text-lg z-10 mt-4 tracking-widest">
-              {DEMO_RECORDS[activeDemoIndex].title}
-            </p>
-            <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center">
-              {(DEMO_RECORDS[activeDemoIndex].videoUrl || DEMO_RECORDS[activeDemoIndex].youtubeId)
-                ? DEMO_RECORDS[activeDemoIndex].desc
-                : 'Próximamente (Preparando el escenario...)'}
-            </p>
+          {/* ── REPRODUCTOR / FACADE ─────────────────────────────────────────── */}
+          {/* Altura fija: el PunkCanvasPlayer vive aquí inline. */}
+          {/* Si no hay vídeo activo, se muestra el poster de llamada a la acción.  */}
+          <div className="border border-menta/20 bg-noche rounded-xl overflow-hidden min-h-[360px] relative">
+
+            {!isVideoPlaying ? (
+              /* ─ POSTER / FACADE ─ */
+              <div className="flex flex-col items-center justify-center h-full min-h-[360px] group">
+                <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-60 pointer-events-none" />
+                <button
+                  onClick={() => {
+                    const demo = DEMO_RECORDS[activeDemoIndex];
+                    if (demo.videoUrl) { setPlayerMode('canvas'); setIsVideoPlaying(true); }
+                    else if (demo.youtubeId) { setPlayerMode('youtube'); setIsVideoPlaying(true); }
+                  }}
+                  className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center
+                    text-menta pl-1 z-10 bg-noche/80 cursor-pointer
+                    group-hover:scale-110 group-hover:border-menta
+                    group-hover:shadow-[0_0_30px_rgba(0,242,169,0.35)]
+                    transition-all duration-200"
+                >
+                  ▶
+                </button>
+                <p className="font-plex-mono text-hueso text-base z-10 mt-4 tracking-widest">
+                  {DEMO_RECORDS[activeDemoIndex].title}
+                </p>
+                <p className="font-plex-sans text-menta/60 text-xs z-10 max-w-xs text-center mt-1">
+                  {(DEMO_RECORDS[activeDemoIndex].videoUrl || DEMO_RECORDS[activeDemoIndex].youtubeId)
+                    ? DEMO_RECORDS[activeDemoIndex].desc
+                    : 'Próximamente — escenario en preparación'}
+                </p>
+              </div>
+            ) : playerMode === 'canvas' && DEMO_RECORDS[activeDemoIndex].videoUrl ? (
+              /* ─ PUNK CANVAS PLAYER (inline, sin fixed, sin portal) ─ */
+              <div className="w-full h-[360px]">
+                <PunkCanvasPlayer
+                  src={DEMO_RECORDS[activeDemoIndex].videoUrl}
+                  title={DEMO_RECORDS[activeDemoIndex].title}
+                  onClose={() => setIsVideoPlaying(false)}
+                />
+              </div>
+            ) : playerMode === 'youtube' && DEMO_RECORDS[activeDemoIndex].youtubeId ? (
+              /* ─ YOUTUBE FALLBACK inline ─ */
+              <div className="relative w-full h-[360px] bg-black">
+                <button
+                  onClick={() => setIsVideoPlaying(false)}
+                  className="absolute top-3 right-3 z-20 font-plex-mono text-[10px] tracking-widest
+                    border border-[#00F2A9]/30 hover:border-[#00F2A9]
+                    text-[#00F2A9]/60 hover:text-[#00F2A9]
+                    px-3 py-1.5 rounded bg-[#0A0A1A]/70 backdrop-blur-md
+                    transition-all duration-200 cursor-pointer"
+                >
+                  [ X ] CERRAR
+                </button>
+                <iframe
+                  className="w-full h-full border-none outline-none"
+                  src={`https://www.youtube.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={DEMO_RECORDS[activeDemoIndex].title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            ) : null}
+
           </div>
 
-          {/* Lista de miniaturas / selector de demos */}
-          <div className="overflow-x-auto">
-            <div className="flex gap-2 pb-1">
+          {/* ── SLIDER DE DEMOS — scroll-snap horizontal, ilimitado ── */}
+          {/* Soporta 10, 100 o los demos que quieras sin romper el layout.       */}
+          {/* scroll-snap-type x mandatory + snap-start en cada card.             */}
+          <div
+            className="overflow-x-auto pb-1"
+            style={{
+              scrollbarWidth: 'none',          /* Firefox: ocultar scrollbar */
+              msOverflowStyle: 'none',         /* IE/Edge: ocultar scrollbar */
+            }}
+          >
+            {/* Ocultar scrollbar en WebKit sin clase custom */}
+            <style>{`.demo-slider::-webkit-scrollbar{display:none}`}</style>
+            <div className="demo-slider flex gap-2"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
               {DEMO_RECORDS.map((demo, index) => (
                 <button
                   key={demo.id}
                   onClick={() => { setActiveDemoIndex(index); setIsVideoPlaying(false); }}
-                  className={`flex-shrink-0 text-left px-4 py-3 rounded-lg border transition-all duration-200 min-w-[160px] max-w-[200px]
-                    ${activeDemoIndex === index
-                      ? 'border-menta bg-menta/10 text-menta'
-                      : 'border-gris-trazado/50 bg-noche/40 text-gris-neutro hover:border-menta/40 hover:text-hueso'
+                  style={{ scrollSnapAlign: 'start' }}
+                  className={`flex-shrink-0 text-left px-4 py-3 rounded-lg border transition-all duration-200 w-[160px]
+                    ${
+                      activeDemoIndex === index
+                        ? 'border-menta bg-menta/10 text-menta shadow-[0_0_12px_rgba(0,242,169,0.15)]'
+                        : 'border-gris-trazado/50 bg-noche/40 text-gris-neutro hover:border-menta/40 hover:text-hueso'
                     }`}
                 >
-                  <p className="text-[10px] font-plex-mono uppercase tracking-widest mb-1 opacity-60">
-                    Demo {index + 1}/4
+                  <p className="text-[9px] font-plex-mono uppercase tracking-widest mb-1 opacity-50">
+                    {index + 1 < 10 ? `0${index + 1}` : index + 1}
                   </p>
-                  <p className="text-xs font-plex-mono font-bold leading-tight">{demo.title}</p>
+                  <p className="text-xs font-plex-mono font-bold leading-tight truncate">{demo.title}</p>
+                  {(demo.videoUrl || demo.youtubeId) && (
+                    <span className="inline-block mt-1 text-[8px] font-plex-mono text-menta/50 tracking-widest uppercase">
+                      ● LISTO
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -301,42 +357,6 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
       </button>
 
     </section>
-
-    {/* PUNK-CANVAS PLAYER (WAVE 2527 — Hardware Overlay Bypass) */}
-    {isVideoPlaying && playerMode === 'canvas' && DEMO_RECORDS[activeDemoIndex].videoUrl && typeof document !== 'undefined'
-      ? createPortal(
-          <PunkCanvasPlayer
-            src={DEMO_RECORDS[activeDemoIndex].videoUrl}
-            title={DEMO_RECORDS[activeDemoIndex].title}
-            onClose={() => setIsVideoPlaying(false)}
-          />,
-          document.body
-        )
-      : null}
-
-    {/* YOUTUBE FALLBACK (solo para demos sin videoUrl propio) */}
-    {isVideoPlaying && playerMode === 'youtube' && DEMO_RECORDS[activeDemoIndex].youtubeId && typeof document !== 'undefined'
-      ? createPortal(
-          <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center touch-none">
-            <button
-              onClick={() => setIsVideoPlaying(false)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-xs md:text-sm border border-menta/30 hover:border-menta px-3 py-2 rounded transition-colors bg-noche/80 backdrop-blur-md cursor-pointer"
-            >
-              [ X ] CERRAR
-            </button>
-            <div className="w-full h-full max-h-[100dvh] flex items-center justify-center p-0 md:p-12">
-              <iframe
-                className="w-full h-full aspect-video max-w-7xl mx-auto outline-none border-none"
-                src={`https://www.youtube.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`}
-                title={DEMO_RECORDS[activeDemoIndex].title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          </div>,
-          document.body
-        )
-      : null}
 
     {/* AUDIT MODAL — Renderizado fuera del stacking context via Portal */}
     <AuditModal audit={selectedAudit} onClose={() => setSelectedAudit(null)} />

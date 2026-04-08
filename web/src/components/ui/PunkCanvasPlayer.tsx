@@ -357,12 +357,15 @@ export default function PunkCanvasPlayer({
   };
 
   // ─── RENDER ──────────────────────────────────────────────────────────
+  // WAVE 2529: Player inline (NO fixed). El usuario controla el fullscreen con ⛶.
+  // cursor-none cuando los controles están ocultos (modo cine inmersivo).
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[99999] bg-black flex flex-col select-none"
+      className={`relative w-full h-full bg-black flex flex-col select-none overflow-hidden
+        ${showControls ? 'cursor-default' : 'cursor-none'}`}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
     >
@@ -377,15 +380,9 @@ export default function PunkCanvasPlayer({
         tabIndex={-1}
       />
 
-      {/* ── CANVAS VISIBLE: Recibe los frames del decoder ── */}
-      {/*
-        will-change: transform — fuerza a Chrome a crear una capa de composición
-        independiente para este canvas ANTES de que se solicite fullscreen.
-        Sin esto, Chrome intenta mover el canvas al compositor en el momento
-        del fullscreen → jank. Con esto, ya tiene su propia layer y la transición
-        es instantánea.
-        imageRendering: pixelated — desactiva bilinear filtering en el blit del
-        canvas. Chrome lo ejecuta por CPU en iGPU saturadas; desactivarlo libera ~2%.
+      {/* ── CANVAS VISIBLE: Recibe los frames del decoder ──
+          will-change:transform → compositor layer propio antes del fullscreen (sin jank).
+          imageRendering:pixelated → desactiva bilinear filtering → libera iGPU ~2%.
       */}
       <canvas
         ref={canvasRef}
@@ -400,55 +397,67 @@ export default function PunkCanvasPlayer({
         aria-label={`Reproducir o pausar: ${title}`}
       />
 
-      {/* ── TÍTULO (top-left) ── */}
+      {/* ── OVERLAY TOP: título + botón cerrar ── */}
       <div
-        className={`absolute top-0 left-0 right-0 px-4 pt-4 pb-8
-          bg-gradient-to-b from-black/70 to-transparent
-          transition-opacity duration-300 pointer-events-none
+        className={`absolute top-0 left-0 right-0 flex items-start justify-between
+          px-4 pt-3 pb-10
+          bg-gradient-to-b from-black/80 to-transparent
+          transition-all duration-300 pointer-events-none
           ${showControls ? 'opacity-100' : 'opacity-0'}`}
       >
-        <span className="font-mono text-xs tracking-[0.25em] uppercase text-[#00F2A9]/70">
-          // LUXSYNC DEMO
-        </span>
-        <p className="font-mono text-sm text-[#EAEAEA] tracking-wider mt-0.5">{title}</p>
+        {/* Título */}
+        <div>
+          <span className="font-plex-mono text-[10px] tracking-[0.3em] uppercase text-[#00F2A9]/60">
+            // LUXSYNC DEMO
+          </span>
+          <p className="font-plex-mono text-sm text-[#EAEAEA] tracking-wider mt-0.5">{title}</p>
+        </div>
+
+        {/* Botón cerrar — pointer-events se restauran solo en él */}
+        <button
+          onClick={onClose}
+          className="pointer-events-auto font-plex-mono text-[10px] tracking-widest
+            border border-[#00F2A9]/30 hover:border-[#00F2A9]
+            text-[#00F2A9]/60 hover:text-[#00F2A9]
+            px-3 py-1.5 rounded
+            bg-[#0A0A1A]/70 backdrop-blur-md
+            transition-all duration-200 cursor-pointer
+            hover:shadow-[0_0_12px_rgba(0,242,169,0.25)]"
+          aria-label="Cerrar reproductor"
+        >
+          [ X ] CERRAR
+        </button>
       </div>
 
-      {/* ── BOTÓN CERRAR (top-right) ── */}
-      <button
-        onClick={onClose}
-        className={`absolute top-4 right-4 z-50
-          font-mono text-xs border border-[#00F2A9]/30 hover:border-[#00F2A9]
-          text-[#00F2A9]/70 hover:text-[#00F2A9]
-          px-3 py-2 rounded bg-[#0A0A1A]/80 backdrop-blur-sm
-          transition-all duration-200 cursor-pointer
-          ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        aria-label="Cerrar reproductor"
-      >
-        [ X ] CERRAR
-      </button>
-
-      {/* ── SPINNER DE BUFFERING ── */}
+      {/* ── SPINNER DE BUFFERING — Anillo ciberpunk ── */}
       {isBuffering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative w-14 h-14">
+          <div className="relative w-12 h-12">
+            {/* Anillo base — muy sutil */}
             <div className="absolute inset-0 rounded-full border-2 border-[#00F2A9]/10" />
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00F2A9] animate-spin" />
+            {/* Anillo giratorio con glow menta */}
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00F2A9]
+              animate-spin shadow-[0_0_10px_rgba(0,242,169,0.4)]" />
           </div>
+          <span className="absolute mt-20 font-plex-mono text-[9px] text-[#00F2A9]/40 tracking-[0.3em] uppercase">
+            buffering
+          </span>
         </div>
       )}
 
-      {/* ── BARRA DE CONTROLES (bottom) ── */}
+      {/* ── COCKPIT: BARRA DE CONTROLES (glassmorphism) ── */}
       <div
         className={`absolute bottom-0 left-0 right-0
-          bg-gradient-to-t from-black/90 via-black/60 to-transparent
-          pt-10 pb-3 px-4
-          transition-opacity duration-300
+          bg-[#0A0A1A]/60 backdrop-blur-md
+          border-t border-[#00F2A9]/20
+          pt-3 pb-3 px-4
+          transition-all duration-300
           ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
 
-        {/* SEEKBAR */}
+        {/* ── SEEKBAR DMX LASER GLOW ── */}
         <div
-          className="relative w-full h-5 flex items-center cursor-pointer mb-2 group"
+          className="relative w-full h-4 flex items-center cursor-pointer mb-2.5 group"
           onClick={handleSeek}
           role="slider"
           aria-label="Progreso del vídeo"
@@ -456,61 +465,77 @@ export default function PunkCanvasPlayer({
           aria-valuemin={0}
           aria-valuemax={duration}
         >
-          {/* Track */}
-          <div className="absolute w-full h-[3px] bg-[#333333] rounded" />
-          {/* Progress */}
+          {/* Track — riel base */}
+          <div className="absolute w-full h-1.5 group-hover:h-2 bg-[#0A0A1A] border border-[#00F2A9]/20 rounded-full transition-all duration-200" />
+          {/* Progress — láser menta con glow */}
           <div
-            className="absolute h-[3px] bg-[#00F2A9] rounded transition-none"
-            style={{ width: `${progressPercent}%` }}
+            className="absolute h-1.5 group-hover:h-2 bg-[#00F2A9] rounded-full transition-all duration-200"
+            style={{
+              width: `${progressPercent}%`,
+              boxShadow: '0 0 10px rgba(0,242,169,0.6), 0 0 20px rgba(0,242,169,0.2)',
+            }}
           />
-          {/* Thumb */}
+          {/* Thumb — aparece en hover */}
           <div
-            className="absolute w-3 h-3 rounded-full bg-[#00F2A9] shadow-[0_0_8px_rgba(0,242,169,0.8)] -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ left: `${progressPercent}%` }}
+            className="absolute w-3 h-3 rounded-full bg-[#00F2A9] -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            style={{
+              left: `${progressPercent}%`,
+              boxShadow: '0 0 8px rgba(0,242,169,0.9)',
+            }}
           />
         </div>
 
-        {/* FILA DE CONTROLES */}
+        {/* ── FILA DE CONTROLES ── */}
         <div className="flex items-center gap-3">
 
           {/* Play/Pause */}
           <button
             onClick={handlePlayPause}
-            className="text-[#EAEAEA] hover:text-[#00F2A9] transition-colors cursor-pointer w-8 h-8 flex items-center justify-center flex-shrink-0"
+            className="text-white/70 hover:text-[#00F2A9] hover:scale-110
+              transition-all duration-150 cursor-pointer
+              w-8 h-8 flex items-center justify-center flex-shrink-0"
             aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
           >
             {isPlaying ? (
-              /* Pause icon — dos barras */
               <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
                 <rect x="2" y="2" width="4" height="12" rx="1" />
                 <rect x="10" y="2" width="4" height="12" rx="1" />
               </svg>
             ) : (
-              /* Play icon — triángulo */
               <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
                 <path d="M3 2.5l10 5.5-10 5.5V2.5z" />
               </svg>
             )}
           </button>
 
-          {/* TIMESTAMP */}
-          <span className="font-mono text-xs text-[#888888] flex-shrink-0 tabular-nums">
-            {formatTime(currentTime)} <span className="opacity-40">/</span> {formatTime(duration)}
+          {/* TIMESTAMP — fuente plex-mono, color menta atenuado */}
+          <span className="font-plex-mono text-xs text-[#00F2A9]/80 flex-shrink-0 tabular-nums tracking-wider">
+            {formatTime(currentTime)}<span className="opacity-30 mx-1">/</span>{formatTime(duration)}
           </span>
 
           {/* SPACER */}
           <div className="flex-1" />
 
-          {/* VOLUMEN */}
+          {/* HINT teclado — centrado sutil */}
+          <span className="hidden md:inline font-plex-mono text-[9px] text-[#888888]/40 tracking-[0.2em] uppercase flex-shrink-0">
+            SPACE · F · ← →
+          </span>
+
+          <div className="flex-1" />
+
+          {/* MUTE */}
           <button
             onClick={toggleMute}
-            className="text-[#888888] hover:text-[#00F2A9] transition-colors cursor-pointer w-7 h-7 flex items-center justify-center flex-shrink-0"
+            className="text-white/70 hover:text-[#00F2A9] hover:scale-110
+              transition-all duration-150 cursor-pointer
+              w-7 h-7 flex items-center justify-center flex-shrink-0"
             aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}
           >
             {isMuted || volume === 0 ? (
               <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                <path d="M6 3L2 6H0v4h2l4 3V3zm6.12 1.88l-1.41 1.41A3.98 3.98 0 0 1 12 8c0 1.03-.39 1.96-1.03 2.67l1.41 1.41A5.96 5.96 0 0 0 14 8c0-1.63-.65-3.1-1.71-4.18l.17.06zm-2.83 2.83l-1.41 1.41A1.99 1.99 0 0 1 10 8c0-.55-.22-1.05-.59-1.41l1.41-1.41c.73.73 1.18 1.73 1.18 2.82z" opacity=".3" />
-                <line x1="1" y1="1" x2="15" y2="15" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M6 3L2 6H0v4h2l4 3V3z" />
+                <line x1="9" y1="5" x2="15" y2="11" stroke="currentColor" strokeWidth="1.5" />
+                <line x1="15" y1="5" x2="9" y2="11" stroke="currentColor" strokeWidth="1.5" />
               </svg>
             ) : (
               <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
@@ -521,7 +546,7 @@ export default function PunkCanvasPlayer({
 
           {/* Barra de volumen */}
           <div
-            className="hidden sm:flex items-center w-20 h-5 cursor-pointer group"
+            className="hidden sm:flex items-center w-16 h-5 cursor-pointer group flex-shrink-0"
             onClick={handleVolumeChange}
             role="slider"
             aria-label="Volumen"
@@ -529,20 +554,23 @@ export default function PunkCanvasPlayer({
             aria-valuemin={0}
             aria-valuemax={1}
           >
-            <div className="relative w-full h-[3px] bg-[#333333] rounded">
+            <div className="relative w-full h-1 group-hover:h-1.5 rounded-full bg-[#333333] transition-all duration-200">
               <div
-                className="absolute h-[3px] bg-[#888888] group-hover:bg-[#00F2A9] rounded transition-colors"
+                className="absolute h-full bg-[#888888] group-hover:bg-[#00F2A9] rounded-full transition-colors duration-200"
                 style={{ width: `${isMuted ? 0 : volume * 100}%` }}
               />
             </div>
           </div>
 
-          {/* FULLSCREEN — EL CORAZÓN DEL BYPASS */}
+          {/* FULLSCREEN — ⭐ EL CORAZÓN DEL BYPASS ── */}
+          {/* requestFullscreen sobre el DIV, no el <video>. Chrome no activa Hardware Overlay. */}
           <button
             onClick={handleFullscreen}
-            className="text-[#888888] hover:text-[#00F2A9] transition-colors cursor-pointer w-7 h-7 flex items-center justify-center flex-shrink-0"
+            className="text-white/70 hover:text-[#00F2A9] hover:scale-110
+              transition-all duration-150 cursor-pointer
+              w-7 h-7 flex items-center justify-center flex-shrink-0"
             aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-            title="Pantalla completa (Bypass: container.requestFullscreen)"
+            title="F — Fullscreen bypass (div.requestFullscreen)"
           >
             {isFullscreen ? (
               <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -556,16 +584,6 @@ export default function PunkCanvasPlayer({
           </button>
 
         </div>
-      </div>
-
-      {/* ── ATAJO DE TECLADO HINT (aparece solo al inicio) ── */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 pointer-events-none">
-        <p
-          className={`font-mono text-[10px] text-[#888888]/60 tracking-widest transition-opacity duration-500
-            ${showControls ? 'opacity-100' : 'opacity-0'}`}
-        >
-          SPACE · F · ESC · ← →
-        </p>
       </div>
 
     </div>
