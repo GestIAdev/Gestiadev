@@ -48,6 +48,9 @@ export default function PunkCanvasPlayer({
   const rafId         = useRef<number>(0);                // ID del requestAnimationFrame
   const lastTimeRef   = useRef<number>(0);                // Throttle del setCurrentTime
   const isLoopActive  = useRef<boolean>(false);           // Guardia anti-doble-loop
+  // Tamaño del canvas medido por ResizeObserver, NUNCA dentro del rAF
+  // (getBoundingClientRect dentro de rAF causa forced reflow → fps drops en Chrome iGPU)
+  const canvasSizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
 
   // ─── STATE ───────────────────────────────────────────────────────────
   const [isPlaying,    setIsPlaying]    = useState(false);
@@ -59,6 +62,27 @@ export default function PunkCanvasPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── RESIZE OBSERVER: mide el canvas UNA SOLA VEZ por cambio de tamaño ────
+  // Jamás dentro del rAF. Forced reflow en cada frame = muerte en Chrome/iGPU.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      // Sincronizar dimensiones intrínsecas del canvas al tamaño CSS
+      canvas.width  = Math.round(width);
+      canvas.height = Math.round(height);
+      // Guardar en ref para el render loop (sin triggear re-render de React)
+      canvasSizeRef.current = { w: Math.round(width), h: Math.round(height) };
+    });
+
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
 
   // ─── RENDER LOOP ─────────────────────────────────────────────────────
   const startLoop = useCallback(() => {
@@ -80,35 +104,31 @@ export default function PunkCanvasPlayer({
       if (ts - last >= interval) {
         last = ts;
 
-        // Sync canvas size al contenedor real (sin DPR para evitar sobrecarga en iGPU)
-        const r = canvas.getBoundingClientRect();
-        if (canvas.width !== r.width || canvas.height !== r.height) {
-          canvas.width  = r.width;
-          canvas.height = r.height;
-        }
+        // Leer tamaño desde ref — CERO accesos al DOM, cero reflow
+        const { w, h } = canvasSizeRef.current;
 
-        if (video.readyState >= 2 && video.videoWidth > 0) {
+        if (video.readyState >= 2 && video.videoWidth > 0 && w > 0 && h > 0) {
           // Letterboxing: mantener aspect ratio del vídeo
           const va = video.videoWidth / video.videoHeight;
-          const ca = canvas.width / canvas.height;
+          const ca = w / h;
           let dw: number, dh: number, ox: number, oy: number;
 
           if (ca > va) {
             // Canvas más ancho que el vídeo → pillar boxes (franjas laterales)
-            dh = canvas.height;
+            dh = h;
             dw = dh * va;
-            ox = (canvas.width - dw) / 2;
+            ox = (w - dw) / 2;
             oy = 0;
           } else {
             // Canvas más alto → letterbox (franjas arriba/abajo)
-            dw = canvas.width;
+            dw = w;
             dh = dw / va;
             ox = 0;
-            oy = (canvas.height - dh) / 2;
+            oy = (h - dh) / 2;
           }
 
           ctx.fillStyle = '#000000';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillRect(0, 0, w, h);
           ctx.drawImage(video, ox, oy, dw, dh);
         }
 
@@ -342,10 +362,24 @@ export default function PunkCanvasPlayer({
       />
 
       {/* ── CANVAS VISIBLE: Recibe los frames del decoder ── */}
+      {/*
+        will-change: transform — fuerza a Chrome a crear una capa de composición
+        independiente para este canvas ANTES de que se solicite fullscreen.
+        Sin esto, Chrome intenta mover el canvas al compositor en el momento
+        del fullscreen → jank. Con esto, ya tiene su propia layer y la transición
+        es instantánea.
+        imageRendering: pixelated — desactiva bilinear filtering en el blit del
+        canvas. Chrome lo ejecuta por CPU en iGPU saturadas; desactivarlo libera ~2%.
+      */}
       <canvas
         ref={canvasRef}
         className="flex-1 w-full block cursor-pointer"
-        style={{ background: '#000000' }}
+        style={{
+          background: '#000000',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          imageRendering: 'pixelated',
+        }}
         onClick={handlePlayPause}
         aria-label={`Reproducir o pausar: ${title}`}
       />
