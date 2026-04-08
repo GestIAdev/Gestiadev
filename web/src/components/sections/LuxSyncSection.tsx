@@ -176,8 +176,8 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
         {/* Columna izquierda — Showcase Player Facade */}
         <div className="lg:col-span-2 flex flex-col gap-3">
-          {/* Player principal */}
-          <div className="border border-menta/20 rounded-xl bg-noche/60 backdrop-blur-md overflow-hidden relative min-h-[360px] group">
+          {/* EL REPRODUCTOR FACADE */}
+          <div className={`lg:col-span-2 border border-menta/20 flex flex-col items-center justify-center min-h-[360px] gap-3 relative group ${!isVideoPlaying ? 'bg-noche/60 backdrop-blur-md rounded-xl overflow-hidden' : 'bg-black'}`}>
             {!isVideoPlaying ? (
               /* Estado inactivo: Facade con botón de Play */
               <div className="flex flex-col items-center justify-center h-full min-h-[360px] gap-3 relative">
@@ -203,11 +203,11 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
             ) : (
               /* Estado activo: iframe de YouTube */
               <iframe
-                className="w-full h-full absolute inset-0"
-                style={{ minHeight: '360px' }}
-                src={`https://www.youtube-nocookie.com/embed/${getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube.com/embed/${getYoutubeId(DEMO_RECORDS[activeDemoIndex].youtubeId)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
                 title={DEMO_RECORDS[activeDemoIndex].title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
             )}
