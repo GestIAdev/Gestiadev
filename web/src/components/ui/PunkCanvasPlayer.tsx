@@ -23,8 +23,6 @@ interface PunkCanvasPlayerProps {
   title: string;
   /** Callback al cerrar el reproductor */
   onClose: () => void;
-  /** FPS objetivo para el render loop (default: 30) */
-  targetFps?: number;
 }
 
 // Formatea segundos a MM:SS
@@ -39,7 +37,6 @@ export default function PunkCanvasPlayer({
   src,
   title,
   onClose,
-  targetFps = 30,
 }: PunkCanvasPlayerProps) {
   // ─── REFS ────────────────────────────────────────────────────────────
   const videoRef      = useRef<HTMLVideoElement>(null);   // Decodificador oculto
@@ -84,73 +81,92 @@ export default function PunkCanvasPlayer({
     return () => observer.disconnect();
   }, []);
 
-  // ─── RENDER LOOP ─────────────────────────────────────────────────────
+  // ─── RENDER LOOP — WAVE 2528.2 ─────────────────────────────────────
+  // God Mode Context: alpha:false (menos memoria VRAM) + desynchronized:true
+  // (saltarse la cola de composición del navegador → latencia mínima).
+  // requestVideoFrameCallback: dispara SOLO cuando hay frame nuevo decodificado.
+  // En una pantalla a 120Hz reproduciendo vídeo a 30fps, rAF ejecutaría 4 veces
+  // por cada frame útil. rvFC ejecuta EXACTAMENTE 1 vez por frame. Cero ciclos
+  // malgastados. Fallback a rAF para Safari/Firefox.
   const startLoop = useCallback(() => {
-    if (isLoopActive.current) return;
-
     const video  = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    // God Mode: alpha:false ahorra un buffer de canal alfa en VRAM.
+    // desynchronized:true salta la sincronización con el compositor del navegador.
+    const ctx = canvas?.getContext('2d', { alpha: false, desynchronized: true });
+    if (!video || !canvas || !ctx) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
+    if (isLoopActive.current) return;
     isLoopActive.current = true;
-    const interval = 1000 / targetFps;
-    let last = 0;
 
-    const frame = (ts: number) => {
-      // Frame skipping adaptativo: solo dibuja cuando toca
-      if (ts - last >= interval) {
-        last = ts;
+    const draw = () => {
+      // Leer tamaño desde ref — CERO accesos al DOM, cero reflow (WAVE 2528)
+      const { w, h } = canvasSizeRef.current;
+      if (video.readyState < 2 || video.videoWidth === 0 || w === 0 || h === 0) return;
 
-        // Leer tamaño desde ref — CERO accesos al DOM, cero reflow
-        const { w, h } = canvasSizeRef.current;
+      // Letterboxing con ENTEROS PUROS — sin decimales = sin sub-pixel blitting
+      // Chrome fuerza antialiasing en la iGPU si recibe valores flotantes → destroza fps
+      const va = video.videoWidth / video.videoHeight;
+      const ca = w / h;
+      let dw: number, dh: number, ox: number, oy: number;
 
-        if (video.readyState >= 2 && video.videoWidth > 0 && w > 0 && h > 0) {
-          // Letterboxing: mantener aspect ratio del vídeo
-          const va = video.videoWidth / video.videoHeight;
-          const ca = w / h;
-          let dw: number, dh: number, ox: number, oy: number;
-
-          if (ca > va) {
-            // Canvas más ancho que el vídeo → pillar boxes (franjas laterales)
-            dh = h;
-            dw = dh * va;
-            ox = (w - dw) / 2;
-            oy = 0;
-          } else {
-            // Canvas más alto → letterbox (franjas arriba/abajo)
-            dw = w;
-            dh = dw / va;
-            ox = 0;
-            oy = (h - dh) / 2;
-          }
-
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(0, 0, w, h);
-          ctx.drawImage(video, ox, oy, dw, dh);
-        }
-
-        // Throttle de setCurrentTime: solo cada 250ms para no reventar React
-        if (ts - lastTimeRef.current > 250) {
-          lastTimeRef.current = ts;
-          setCurrentTime(video.currentTime);
-        }
+      if (ca > va) {
+        dh = h; dw = dh * va; ox = (w - dw) / 2; oy = 0;
+      } else {
+        dw = w; dh = dw / va; ox = 0; oy = (h - dh) / 2;
       }
 
-      if (!video.paused && !video.ended) {
-        rafId.current = requestAnimationFrame(frame);
-      } else {
-        isLoopActive.current = false;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, w, h);
+      // Math.floor en TODOS los parámetros: fuerza integer blitting en iGPU
+      ctx.drawImage(video,
+        Math.floor(ox), Math.floor(oy),
+        Math.floor(dw), Math.floor(dh)
+      );
+
+      // Throttle de setCurrentTime: solo cada 250ms
+      const now = performance.now();
+      if (now - lastTimeRef.current > 250) {
+        lastTimeRef.current = now;
+        setCurrentTime(video.currentTime);
       }
     };
 
-    rafId.current = requestAnimationFrame(frame);
-  }, [targetFps]);
+    if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+      // Ruta Chromium: callback disparado SOLO al llegar un frame nuevo del decoder.
+      // Esto elimina el problema de 120Hz vs 30fps: ejecuta exactamente 30/60 veces/s.
+      const frameCallback = () => {
+        draw();
+        if (!video.paused && !video.ended) {
+          rafId.current = video.requestVideoFrameCallback(frameCallback) as unknown as number;
+        } else {
+          isLoopActive.current = false;
+        }
+      };
+      rafId.current = video.requestVideoFrameCallback(frameCallback) as unknown as number;
+    } else {
+      // Fallback Safari / Firefox: rAF clásico sin frame skipping
+      // (en estos navegadores no hay el problema de 120Hz Optimus)
+      const frame = () => {
+        draw();
+        if (!video.paused && !video.ended) {
+          rafId.current = requestAnimationFrame(frame);
+        } else {
+          isLoopActive.current = false;
+        }
+      };
+      rafId.current = requestAnimationFrame(frame);
+    }
+  }, []);
 
   const stopLoop = useCallback(() => {
-    cancelAnimationFrame(rafId.current);
+    const video = videoRef.current;
+    // Cancelar el mecanismo correcto según el que esté activo
+    if (video && 'cancelVideoFrameCallback' in HTMLVideoElement.prototype) {
+      video.cancelVideoFrameCallback(rafId.current);
+    } else {
+      cancelAnimationFrame(rafId.current);
+    }
     isLoopActive.current = false;
   }, []);
 

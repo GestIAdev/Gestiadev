@@ -91,7 +91,7 @@ const DEMO_RECORDS = [
     id: 'demo-chronos',
     title: 'CHRONOS TIMECODER',
     desc: 'Criptografía RSA offline y Zero-Trust Architecture aplicados a timeline DMX.',
-    videoUrl: '',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquido.webm',
     youtubeId: '',
   },
   {
@@ -309,7 +309,6 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
             src={DEMO_RECORDS[activeDemoIndex].videoUrl}
             title={DEMO_RECORDS[activeDemoIndex].title}
             onClose={() => setIsVideoPlaying(false)}
-            targetFps={30}
           />,
           document.body
         )
