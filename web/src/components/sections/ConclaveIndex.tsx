@@ -328,7 +328,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
                     <div className="p-2 flex flex-col gap-1">
                       {/* Google */}
                       <button
-                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'google' }); setShowAuthMenu(false); }}
+                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/` } }); setShowAuthMenu(false); }}
                         className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded text-xs font-plex-mono text-hueso hover:bg-menta/10 hover:text-menta transition-colors group"
                       >
                         <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor">
@@ -342,7 +342,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
 
                       {/* Discord */}
                       <button
-                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'discord' }); setShowAuthMenu(false); }}
+                        onClick={() => { supabase.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: `${window.location.origin}/` } }); setShowAuthMenu(false); }}
                         className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded text-xs font-plex-mono text-hueso hover:bg-menta/10 hover:text-menta transition-colors group"
                       >
                         <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor">
