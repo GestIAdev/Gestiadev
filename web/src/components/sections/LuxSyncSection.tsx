@@ -81,7 +81,7 @@ const DEMO_RECORDS = [
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
     desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
-    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquidnoia.mp4',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Omniliquidnoia.mp4',
   },
   {
     id: 'demo-chronos',
@@ -189,7 +189,11 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
                 autoPlay
                 controls
                 playsInline
-                style={{ objectFit: 'contain' }}
+                style={{ 
+                  objectFit: 'contain', 
+                  WebkitTransform: 'translateZ(0)', 
+                  willChange: 'transform' 
+                }}
               />
             )}
           </div>
