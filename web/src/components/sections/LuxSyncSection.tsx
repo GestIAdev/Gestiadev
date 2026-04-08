@@ -81,25 +81,25 @@ const DEMO_RECORDS = [
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
     desc: 'Físicas de fluidos DMX en tiempo real. Ondas, turbulencia y reactividad espectral.',
-    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquido.webm',
+    youtubeId: 'R4xuVW0M4xU',
   },
   {
     id: 'demo-chronos',
     title: 'CHRONOS TIMECODER',
     desc: 'Criptografía RSA offline y Zero-Trust Architecture aplicados a timeline DMX.',
-    videoUrl: '',
+    youtubeId: '',
   },
   {
     id: 'demo-selene',
     title: 'SELENE IA CORE',
     desc: 'IA en vivo para toma de decisiones lumínicas autónomas, latencia sub-frame.',
-    videoUrl: '',
+    youtubeId: '',
   },
   {
     id: 'demo-hephaestus',
     title: 'HEPHAESTUS FX',
     desc: 'Editor de curvas de automatización DMX con render vectorial de alta precisión.',
-    videoUrl: '',
+    youtubeId: '',
   },
 ];
 
@@ -150,7 +150,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-50 pointer-events-none"></div>
             <button
               onClick={() => {
-                if (DEMO_RECORDS[activeDemoIndex].videoUrl) setIsVideoPlaying(true);
+                if (DEMO_RECORDS[activeDemoIndex].youtubeId) setIsVideoPlaying(true);
               }}
               className="w-16 h-16 rounded-full border-2 border-menta/50 flex items-center justify-center text-menta pl-1 group-hover:scale-110 group-hover:border-menta group-hover:shadow-[0_0_30px_rgba(0,229,255,0.3)] transition-all cursor-pointer z-10 bg-noche/80"
             >
@@ -160,7 +160,7 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
               {DEMO_RECORDS[activeDemoIndex].title}
             </p>
             <p className="font-plex-sans text-menta/60 text-sm z-10 max-w-xs text-center">
-              {DEMO_RECORDS[activeDemoIndex].videoUrl
+              {DEMO_RECORDS[activeDemoIndex].youtubeId
                 ? DEMO_RECORDS[activeDemoIndex].desc
                 : 'Próximamente (Preparando el escenario...)'}
             </p>
@@ -286,25 +286,27 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
 
     </section>
 
-    {/* CINEMA OVERLAY (Teletransportado vía Portal para evadir Stacking Contexts) */}
-    {isVideoPlaying && DEMO_RECORDS[activeDemoIndex].videoUrl && typeof document !== 'undefined'
+    {/* CINEMA OVERLAY (YouTube Hybrid) */}
+    {isVideoPlaying && DEMO_RECORDS[activeDemoIndex].youtubeId && typeof document !== 'undefined'
       ? createPortal(
-          <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300 touch-none">
+            {/* Botón adaptado para móviles (mt-safe y estilos más compactos) */}
             <button
               onClick={() => setIsVideoPlaying(false)}
-              className="absolute top-6 right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-sm border border-menta/30 hover:border-menta px-4 py-2 rounded transition-colors bg-noche/50 backdrop-blur-sm cursor-pointer"
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-xs md:text-sm border border-menta/30 hover:border-menta px-3 py-2 rounded transition-colors bg-noche/80 backdrop-blur-md cursor-pointer"
             >
-              [ X ] CERRAR TRANSMISIÓN
+              [ X ] CERRAR
             </button>
-            <video
-              className="w-full h-full max-h-screen outline-none"
-              style={{ objectFit: 'contain' }}
-              src={DEMO_RECORDS[activeDemoIndex].videoUrl}
-              autoPlay
-              controls
-              controlsList="nofullscreen"
-              playsInline
-            />
+
+            <div className="w-full h-full max-h-[100dvh] flex items-center justify-center p-0 md:p-12">
+              <iframe
+                className="w-full h-full aspect-video max-w-7xl mx-auto shadow-[0_0_50px_rgba(0,229,255,0.1)] outline-none border-none"
+                src={`https://www.youtube.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                title={DEMO_RECORDS[activeDemoIndex].title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
           </div>,
           document.body
         )
