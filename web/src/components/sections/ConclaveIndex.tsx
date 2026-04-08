@@ -112,15 +112,31 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
     }
   };
 
-  // ── AUTH STATE + CARGA INICIAL ──
+  // ── AUTH STATE + DREAM CATCHER (Atrapasueños) ──
+  // El "Atrapasueños" engancha Supabase onAuthStateChange para capturar el token
+  // cuando regresa del OAuth provider. Limpia automáticamente la URL porquería sin recargar.
   useEffect(() => {
+    // 1. Obtener la sesión actual si ya existe (ej. tab refresco, SSR hydration)
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
+
+    // 2. El "Atrapasueños": Escuchar cuando Supabase procesa el token de la URL
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
+      
+      // 💎 Estética Cyberpunk: Limpiar el chorrón de parámetros de la URL sin recargar
+      // Cuando el usuario hace login (SIGNED_IN), Google/Discord redirect con ?code=... etc.
+      // Esto lo saca de la URL limpiamente, invisiblemente.
+      if (_event === 'SIGNED_IN') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     });
+
+    // 3. Cargar datos del foro
     loadData();
+
+    // 4. Limpieza: desuscribirse del listener al desmontar
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
