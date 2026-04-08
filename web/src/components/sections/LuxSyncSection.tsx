@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { View } from '@/app/page';
 import AuditModal, { type AuditDoc } from '@/components/ui/AuditModal';
 
@@ -285,27 +286,29 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
 
     </section>
 
-    {/* CINEMA OVERLAY (Bypass del Fullscreen Nativo) */}
-    {isVideoPlaying && DEMO_RECORDS[activeDemoIndex].videoUrl && (
-      <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
-        <button
-          onClick={() => setIsVideoPlaying(false)}
-          className="absolute top-6 right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-sm border border-menta/30 hover:border-menta px-4 py-2 rounded transition-colors bg-noche/50 backdrop-blur-sm"
-        >
-          [ X ] CERRAR TRANSMISIÓN
-        </button>
-
-        <video
-          className="w-full h-full max-h-screen outline-none"
-          style={{ objectFit: 'contain' }}
-          src={DEMO_RECORDS[activeDemoIndex].videoUrl}
-          autoPlay
-          controls
-          controlsList="nofullscreen"
-          playsInline
-        />
-      </div>
-    )}
+    {/* CINEMA OVERLAY (Teletransportado vía Portal para evadir Stacking Contexts) */}
+    {isVideoPlaying && DEMO_RECORDS[activeDemoIndex].videoUrl && typeof document !== 'undefined'
+      ? createPortal(
+          <div className="fixed inset-0 z-[99999] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
+            <button
+              onClick={() => setIsVideoPlaying(false)}
+              className="absolute top-6 right-6 z-50 text-menta/70 hover:text-menta font-plex-mono text-sm border border-menta/30 hover:border-menta px-4 py-2 rounded transition-colors bg-noche/50 backdrop-blur-sm cursor-pointer"
+            >
+              [ X ] CERRAR TRANSMISIÓN
+            </button>
+            <video
+              className="w-full h-full max-h-screen outline-none"
+              style={{ objectFit: 'contain' }}
+              src={DEMO_RECORDS[activeDemoIndex].videoUrl}
+              autoPlay
+              controls
+              controlsList="nofullscreen"
+              playsInline
+            />
+          </div>,
+          document.body
+        )
+      : null}
 
     {/* AUDIT MODAL — Renderizado fuera del stacking context via Portal */}
     <AuditModal audit={selectedAudit} onClose={() => setSelectedAudit(null)} />
