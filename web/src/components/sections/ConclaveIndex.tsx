@@ -1090,7 +1090,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                 <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
                 {/* Punto de conexión */}
                 <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
-                <div className="bg-[#16161a] border border-gris-trazado/30 hover:border-gris-trazado/50 transition-colors duration-200 p-4">
+                <div className="bg-black/20 border-l-2 border-l-gris-trazado pl-4 py-3 my-2 hover:bg-black/40 transition-colors duration-200">
                   <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
                     {reply.author?.avatar_url ? (
                       <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
