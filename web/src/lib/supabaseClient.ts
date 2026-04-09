@@ -165,3 +165,57 @@ export async function updateProfile(
     .eq('id', userId);
   if (error) throw error;
 }
+
+// ============================================================
+// CRUD — WAVE 2531
+// ============================================================
+
+export async function updateThread(
+  threadId: string,
+  authorId: string,
+  updates: { title?: string; content?: string }
+): Promise<void> {
+  const { error } = await supabase
+    .from('threads')
+    .update(updates)
+    .eq('id', threadId)
+    .eq('author_id', authorId); // doble validación cliente antes del RLS
+  if (error) throw error;
+}
+
+export async function deleteThread(
+  threadId: string,
+  authorId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('threads')
+    .delete()
+    .eq('id', threadId)
+    .eq('author_id', authorId); // doble validación cliente antes del RLS
+  if (error) throw error;
+}
+
+export async function updateReply(
+  replyId: string,
+  authorId: string,
+  content: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('replies')
+    .update({ content })
+    .eq('id', replyId)
+    .eq('author_id', authorId); // doble validación cliente antes del RLS
+  if (error) throw error;
+}
+
+export async function deleteReply(
+  replyId: string,
+  authorId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('replies')
+    .delete()
+    .eq('id', replyId)
+    .eq('author_id', authorId); // doble validación cliente antes del RLS
+  if (error) throw error;
+}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply, fetchProfile, updateProfile } from '@/lib/supabaseClient';
+import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply, fetchProfile, updateProfile, updateThread, deleteThread, updateReply, deleteReply } from '@/lib/supabaseClient';
 import type { DbCategory, DbThread, DbReply, DbProfile } from '@/lib/supabaseClient';
 import type { View } from '@/app/page';
 
@@ -69,6 +69,56 @@ function relativeTime(iso: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `Hace ${h}h`;
   return `Hace ${Math.floor(h / 24)}d`;
+}
+
+// ============================================================
+// PARSER MULTIMEDIA — YouTube embed + texto plano
+// ============================================================
+const YT_REGEX = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})(?:[^\s]*)?/g;
+
+function parseTextWithMedia(content: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  // Clonar el regex para evitar estado global entre renders
+  const re = new RegExp(YT_REGEX.source, 'g');
+
+  while ((match = re.exec(content)) !== null) {
+    // Texto previo al enlace
+    if (match.index > lastIndex) {
+      nodes.push(
+        <span key={`txt-${lastIndex}`} className="whitespace-pre-wrap">
+          {content.slice(lastIndex, match.index)}
+        </span>
+      );
+    }
+    const videoId = match[1];
+    nodes.push(
+      <div key={`yt-${match.index}`} className="my-3 border border-menta/30 overflow-hidden" style={{ aspectRatio: '16/9' }}>
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+          title="YouTube video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          className="w-full h-full border-0"
+        />
+      </div>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Texto restante
+  if (lastIndex < content.length) {
+    nodes.push(
+      <span key={`txt-end`} className="whitespace-pre-wrap">
+        {content.slice(lastIndex)}
+      </span>
+    );
+  }
+
+  return nodes.length > 0 ? nodes : [<span key="full" className="whitespace-pre-wrap">{content}</span>];
 }
 
 // ============================================================
@@ -699,6 +749,22 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
 
+  // ── Estado CRUD hilo ──
+  const [editingThread, setEditingThread] = useState(false);
+  const [editThreadTitle, setEditThreadTitle] = useState(thread.title);
+  const [editThreadContent, setEditThreadContent] = useState(thread.content);
+  const [threadActionLoading, setThreadActionLoading] = useState(false);
+  const [threadActionError, setThreadActionError] = useState<string | null>(null);
+  const [threadDeleted, setThreadDeleted] = useState(false);
+
+  // ── Estado CRUD replies ──
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyContent, setEditReplyContent] = useState('');
+  const [replyActionLoading, setReplyActionLoading] = useState(false);
+  const [replyActionError, setReplyActionError] = useState<string | null>(null);
+
+  const isThreadAuthor = !!session?.user?.id && session.user.id === thread.author_id;
+
   useEffect(() => {
     setRepliesLoading(true);
     fetchReplies(thread.id)
@@ -728,6 +794,86 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
     }
   };
 
+  // ── Handlers CRUD hilo ──
+  const handleThreadSave = async () => {
+    if (!session?.user?.id) return;
+    setThreadActionLoading(true);
+    setThreadActionError(null);
+    try {
+      await updateThread(thread.id, session.user.id, {
+        title: editThreadTitle.trim(),
+        content: editThreadContent.trim(),
+      });
+      thread.title = editThreadTitle.trim();
+      thread.content = editThreadContent.trim();
+      setEditingThread(false);
+    } catch (err: any) {
+      setThreadActionError(err.message ?? 'Error al guardar.');
+    } finally {
+      setThreadActionLoading(false);
+    }
+  };
+
+  const handleThreadDelete = async () => {
+    if (!session?.user?.id) return;
+    if (!window.confirm('¿Borrar este hilo permanentemente?')) return;
+    setThreadActionLoading(true);
+    setThreadActionError(null);
+    try {
+      await deleteThread(thread.id, session.user.id);
+      setThreadDeleted(true);
+      setTimeout(onBack, 800);
+    } catch (err: any) {
+      setThreadActionError(err.message ?? 'Error al borrar.');
+      setThreadActionLoading(false);
+    }
+  };
+
+  // ── Handlers CRUD reply ──
+  const handleReplyEditStart = (reply: LiveReply) => {
+    setEditingReplyId(reply.id);
+    setEditReplyContent(reply.content);
+    setReplyActionError(null);
+  };
+
+  const handleReplyEditSave = async (replyId: string) => {
+    if (!session?.user?.id) return;
+    setReplyActionLoading(true);
+    setReplyActionError(null);
+    try {
+      await updateReply(replyId, session.user.id, editReplyContent.trim());
+      setReplies(prev => prev.map(r => r.id === replyId ? { ...r, content: editReplyContent.trim() } : r));
+      setEditingReplyId(null);
+    } catch (err: any) {
+      setReplyActionError(err.message ?? 'Error al guardar respuesta.');
+    } finally {
+      setReplyActionLoading(false);
+    }
+  };
+
+  const handleReplyDelete = async (replyId: string) => {
+    if (!session?.user?.id) return;
+    if (!window.confirm('¿Borrar esta respuesta?')) return;
+    setReplyActionLoading(true);
+    setReplyActionError(null);
+    try {
+      await deleteReply(replyId, session.user.id);
+      setReplies(prev => prev.filter(r => r.id !== replyId));
+    } catch (err: any) {
+      setReplyActionError(err.message ?? 'Error al borrar respuesta.');
+    } finally {
+      setReplyActionLoading(false);
+    }
+  };
+
+  if (threadDeleted) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-xs font-plex-mono text-menta/60">// Hilo eliminado. Redirigiendo...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Breadcrumb */}
@@ -737,18 +883,81 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
         </button>
       </div>
 
-      {/* Thread Header — glassmorphic con borde menta */}
+      {/* Thread Header */}
       <div className="bg-gradient-to-br from-noche/95 to-noche/80 backdrop-blur-md shadow-2xl border border-gris-trazado/30 border-l-4 border-l-menta/60 p-6 mb-6">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-start gap-3 mb-3">
           {thread.is_pinned && (
             <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
           )}
+          {/* Botones de propiedad — solo al autor */}
+          {isThreadAuthor && !editingThread && (
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => { setEditingThread(true); setThreadActionError(null); }}
+                className="text-[10px] font-plex-mono text-gris-neutro/50 border border-gris-trazado/30 px-2 py-0.5 hover:text-menta hover:border-menta/40 transition-colors"
+              >
+                [ EDITAR ]
+              </button>
+              <button
+                onClick={handleThreadDelete}
+                disabled={threadActionLoading}
+                className="text-[10px] font-plex-mono text-gris-neutro/50 border border-gris-trazado/30 px-2 py-0.5 hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-30"
+              >
+                [ BORRAR ]
+              </button>
+            </div>
+          )}
         </div>
-        <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-4 leading-tight">{thread.title}</h2>
-        <div className="border-t border-gris-trazado/30 pt-4 mb-4">
-          <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{thread.content}</p>
-        </div>
+
+        {editingThread ? (
+          <>
+            <input
+              value={editThreadTitle}
+              onChange={(e) => setEditThreadTitle(e.target.value)}
+              className="w-full bg-noche/80 border border-gris-trazado/40 px-3 py-2 text-lg font-plex-mono font-bold text-hueso focus:outline-none focus:border-menta/50 mb-3"
+            />
+            <textarea
+              value={editThreadContent}
+              onChange={(e) => setEditThreadContent(e.target.value)}
+              rows={6}
+              className="w-full bg-noche/80 border border-gris-trazado/40 px-3 py-2 text-sm font-plex-sans text-hueso focus:outline-none focus:border-menta/50 resize-none mb-3"
+            />
+            {threadActionError && <p className="text-xs text-red-400 font-plex-mono mb-2">{threadActionError}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={handleThreadSave}
+                disabled={threadActionLoading || !editThreadTitle.trim() || !editThreadContent.trim()}
+                className="text-[10px] font-plex-mono text-noche bg-menta px-4 py-1.5 disabled:opacity-40 hover:bg-menta/90 transition-colors"
+              >
+                {threadActionLoading ? '...' : '[ GUARDAR ]'}
+              </button>
+              <button
+                onClick={() => { setEditingThread(false); setEditThreadTitle(thread.title); setEditThreadContent(thread.content); }}
+                className="text-[10px] font-plex-mono text-gris-neutro border border-gris-trazado/40 px-4 py-1.5 hover:text-hueso transition-colors"
+              >
+                [ CANCELAR ]
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-4 leading-tight">{thread.title}</h2>
+            <div className="border-t border-gris-trazado/30 pt-4 mb-4">
+              <div className="text-sm font-plex-sans text-gris-neutro leading-relaxed">
+                {parseTextWithMedia(thread.content)}
+              </div>
+            </div>
+          </>
+        )}
+
         <div className="flex items-center gap-4 pt-3 border-t border-gris-trazado/20">
+          {thread.author?.avatar_url ? (
+            <img src={thread.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="w-5 h-5 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[9px] font-plex-mono text-gris-neutro">
+              {(thread.author?.username ?? '?')[0].toUpperCase()}
+            </span>
+          )}
           <span className="text-xs font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
           <span className="text-xs font-plex-sans text-gris-neutro/40">{relativeTime(thread.created_at)}</span>
         </div>
@@ -760,6 +969,10 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
         {replies.length} Respuestas
       </h3>
 
+      {replyActionError && (
+        <p className="text-xs text-red-400 font-plex-mono mb-3">{replyActionError}</p>
+      )}
+
       {/* Replies List */}
       <div className="flex flex-col mb-8">
         {repliesLoading ? (
@@ -769,32 +982,83 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
             <p className="text-xs font-plex-mono text-gris-neutro/40">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
           </div>
         ) : (
-          replies.map((reply) => (
-            <div key={reply.id} className="relative ml-4 pl-5 mb-3 last:mb-0">
-              {/* Línea vertical del árbol */}
-              <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
-              {/* Punto de conexión */}
-              <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
-              <div className="bg-white/[0.02] border border-gris-trazado/15 hover:border-gris-trazado/30 transition-colors duration-200 p-4">
-                <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
-                  {reply.author?.avatar_url ? (
-                    <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+          replies.map((reply) => {
+            const isReplyAuthor = !!session?.user?.id && session.user.id === reply.author_id;
+            const isEditing = editingReplyId === reply.id;
+            return (
+              <div key={reply.id} className="relative ml-4 pl-5 mb-3 last:mb-0 group/reply">
+                {/* Línea vertical del árbol */}
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
+                {/* Punto de conexión */}
+                <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
+                <div className="bg-white/[0.02] border border-gris-trazado/15 hover:border-gris-trazado/30 transition-colors duration-200 p-4">
+                  <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
+                    {reply.author?.avatar_url ? (
+                      <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className="w-5 h-5 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[9px] font-plex-mono text-gris-neutro">
+                        {(reply.author?.username ?? '?')[0].toUpperCase()}
+                      </span>
+                    )}
+                    <span className="text-xs font-plex-mono text-menta/70">{reply.author?.username ?? 'anon'}</span>
+                    <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(reply.created_at)}</span>
+                    {/* Botones de propiedad reply — visibles al hover del autor */}
+                    {isReplyAuthor && !isEditing && (
+                      <div className="flex items-center gap-1.5 ml-auto opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleReplyEditStart(reply)}
+                          className="text-[9px] font-plex-mono text-gris-neutro/40 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-menta hover:border-menta/30 transition-colors"
+                        >
+                          [ EDITAR ]
+                        </button>
+                        <button
+                          onClick={() => handleReplyDelete(reply.id)}
+                          disabled={replyActionLoading}
+                          className="text-[9px] font-plex-mono text-gris-neutro/40 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-30"
+                        >
+                          [ BORRAR ]
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {isEditing ? (
+                    <>
+                      <textarea
+                        value={editReplyContent}
+                        onChange={(e) => setEditReplyContent(e.target.value)}
+                        rows={3}
+                        className="w-full bg-noche/80 border border-gris-trazado/40 px-3 py-2 text-sm font-plex-sans text-hueso focus:outline-none focus:border-menta/50 resize-none mb-2"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReplyEditSave(reply.id)}
+                          disabled={replyActionLoading || !editReplyContent.trim()}
+                          className="text-[9px] font-plex-mono text-noche bg-menta px-3 py-1 disabled:opacity-40 hover:bg-menta/90 transition-colors"
+                        >
+                          {replyActionLoading ? '...' : '[ GUARDAR ]'}
+                        </button>
+                        <button
+                          onClick={() => setEditingReplyId(null)}
+                          className="text-[9px] font-plex-mono text-gris-neutro border border-gris-trazado/30 px-3 py-1 hover:text-hueso transition-colors"
+                        >
+                          [ CANCELAR ]
+                        </button>
+                      </div>
+                    </>
                   ) : (
-                    <span className="w-5 h-5 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[9px] font-plex-mono text-gris-neutro">
-                      {(reply.author?.username ?? '?')[0].toUpperCase()}
-                    </span>
+                    <div className="text-sm font-plex-sans text-gris-neutro leading-relaxed">
+                      {parseTextWithMedia(reply.content)}
+                    </div>
                   )}
-                  <span className="text-xs font-plex-mono text-menta/70">{reply.author?.username ?? 'anon'}</span>
-                  <span className="text-[10px] font-plex-mono text-gris-neutro/30 ml-auto tabular-nums">{relativeTime(reply.created_at)}</span>
                 </div>
-                <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{reply.content}</p>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
-      {/* Reply form — funcional si hay sesión */}
+      {/* Reply form */}
       {session ? (
         <form onSubmit={handleReplySubmit} className="border border-gris-trazado/30 p-5 bg-noche/60 backdrop-blur-sm mb-8">
           <p className="text-xs font-plex-mono text-menta/60 mb-3">// Responder en este hilo</p>
@@ -802,9 +1066,24 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             rows={4}
-            placeholder="Escribe tu respuesta..."
+            placeholder="Escribe tu respuesta... (pega un link de YouTube para embed automático)"
             className="w-full bg-noche/80 border border-gris-trazado/30 px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 resize-none mb-3"
           />
+          {/* Placeholder Hephaestus — WAVE 2532 */}
+          <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gris-trazado/10">
+            <button
+              type="button"
+              disabled
+              title="Máx. 500KB · Formatos: .lfx · Disponible en WAVE 2532 (Módulo Hefesto)"
+              className="flex items-center gap-2 text-[9px] font-plex-mono text-gris-neutro/25 border border-gris-trazado/15 px-3 py-1.5 cursor-not-allowed select-none"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+              Adjuntar .LFX
+            </button>
+            <span className="text-[9px] font-plex-mono text-gris-neutro/20">// WAVE 2532 — Módulo Hefesto · máx. 500KB</span>
+          </div>
           {replyError && <p className="text-xs text-red-400 font-plex-mono mb-2">{replyError}</p>}
           <div className="flex justify-end">
             <button
