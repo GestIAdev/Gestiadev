@@ -29,7 +29,7 @@ const Hero = ({ setActiveView }: HeroProps) => {
         alt="Selene LUX Core"
         width={320}
         height={320}
-        className="w-48 md:w-64 lg:w-80 h-auto mb-6 drop-shadow-[0_0_35px_rgba(0,242,169,0.25)]"
+        className="w-48 md:w-64 lg:w-80 h-auto mb-6 rounded-full aspect-square object-cover shadow-[0_0_40px_rgba(0,242,169,0.2)]"
         priority
       />
 
