@@ -27,9 +27,9 @@ const Hero = ({ setActiveView }: HeroProps) => {
       <Image
         src="/luxsync/interpreted_vector_logo.png"
         alt="Selene LUX Core"
-        width={320}
-        height={320}
-        className="w-48 md:w-64 lg:w-80 h-auto mb-6 rounded-full aspect-square object-cover shadow-[0_0_40px_rgba(0,242,169,0.2)]"
+        width={384}
+        height={384}
+        className="w-64 md:w-80 lg:w-96 mb-8 rounded-full shadow-[0_0_40px_rgba(0,242,169,0.15)] mx-auto object-contain"
         priority
       />
 
