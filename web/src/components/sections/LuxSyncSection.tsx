@@ -88,9 +88,9 @@ const DEMO_RECORDS = [
   },
   {
     id: 'demo-chronos',
-    title: 'CHRONOS TIMECODER',
+    title: 'HYPERION 3D NEONBLOOM',
     desc: 'Criptografía RSA offline y Zero-Trust Architecture aplicados a timeline DMX.',
-    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquido.webm',
+    videoUrl: 'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Liquid3d.webm',
     youtubeId: '',
   },
   {

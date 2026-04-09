@@ -63,7 +63,7 @@ const Armeria = ({ setActiveView }: ArmeriaProps) => {
             </h3>
             <p className="text-gris-neutro font-plex-sans text-sm leading-relaxed mb-6 max-w-md">
               Software de control de iluminación escénica impulsado por <span className="text-hueso">Selene Lux IA</span>.
-              Compite directamente con GrandMA3. Zero dependencias externas.
+              Suite completa con timecoder y editor FX. Zero dependencias externas.
               Las auditorías técnicas lo demuestran.
             </p>
 
