@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import type { View } from '@/app/page';
 
 interface HeroProps {
@@ -22,18 +23,53 @@ const Hero = ({ setActiveView }: HeroProps) => {
       exit="exit"
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      <h1 className="text-4xl md:text-5xl lg:text-7xl font-plex-mono font-bold tracking-tighter mb-6">
-        Forjamos el Futuro del Software.
-      </h1>
-      <p className="max-w-2xl text-base md:text-lg text-gris-neutro mb-10">
-        Las herramientas de élite no deberían ser un privilegio. Construimos tecnología de alto rendimiento accesible para todos.
+      {/* Logo Selene — Ancla Visual */}
+      <div className="mb-8 relative">
+        <div className="w-64 md:w-80 lg:w-96 h-64 md:h-80 lg:h-96 rounded-full shadow-[0_0_40px_rgba(0,242,169,0.15)] flex items-center justify-center bg-noche/40 border border-menta/20">
+          <Image
+            src="/luxsync/interpreted_vector_logo.png"
+            alt="Selene LUX Core"
+            width={384}
+            height={384}
+            className="w-52 md:w-64 lg:w-72 h-auto rounded-full"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Kicker — INICIANDO SECUENCIA */}
+      <p className="text-xs md:text-sm font-plex-mono text-menta tracking-[0.3em] uppercase mb-4">
+        // INICIANDO SECUENCIA BETA
       </p>
-      <button
-        onClick={() => setActiveView('arsenal')}
-        className="font-plex-mono text-menta border border-menta rounded-md px-4 py-2 md:px-6 md:py-3 transition-all duration-300 hover:bg-menta hover:text-noche text-sm md:text-base"
-      >
-        [ Explorar Nuestro Arsenal ]
-      </button>
+
+      {/* H1 — Titular Principal */}
+      <h1 className="text-4xl md:text-5xl lg:text-7xl font-plex-mono font-bold tracking-tighter mb-6 text-hueso">
+        Luxync DMX. La automatización ha evolucionado.
+      </h1>
+
+      {/* Subtítulo — Descripción */}
+      <p className="max-w-2xl text-base md:text-lg text-gris-neutro mb-10 font-plex-sans">
+        Físicas de fluidos, sincronización Radix-2 y el primer motor cognitivo DMX. Únete a la Beta Testing y jubila los presets.
+      </p>
+
+      {/* Doble Embudo de CTAs */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        {/* Botón Primario — Reclamar Beta */}
+        <button
+          onClick={() => setActiveView('luxsync')}
+          className="font-plex-mono font-bold bg-menta text-noche px-6 py-3 text-sm md:text-base transition-all duration-300 hover:bg-menta/90 hover:shadow-[0_0_20px_rgba(0,242,169,0.3)]"
+        >
+          [ RECLAMAR BETA ]
+        </button>
+
+        {/* Botón Secundario — Explorar Armería */}
+        <button
+          onClick={() => setActiveView('arsenal')}
+          className="font-plex-mono text-gris-neutro border border-gris-trazado px-6 py-3 text-sm md:text-base transition-all duration-300 hover:text-menta hover:border-menta"
+        >
+          [ EXPLORAR ARMERÍA ]
+        </button>
+      </div>
     </motion.section>
   );
 };
