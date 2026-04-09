@@ -35,8 +35,8 @@ const Armeria = ({ setActiveView }: ArmeriaProps) => {
 
         {/* ── LUXSYNC ── */}
         <motion.div
-          className="relative border border-menta/30 rounded-xl overflow-hidden bg-noche/60 backdrop-blur-sm group cursor-pointer"
-          whileHover={{ borderColor: 'rgba(0,242,169,0.6)', boxShadow: '0 0 30px rgba(0,242,169,0.12)' }}
+          className="relative border border-gris-trazado/20 rounded-xl overflow-hidden bg-[#0D0D1F] backdrop-blur-sm group cursor-pointer"
+          whileHover={{ borderColor: 'rgba(0,242,169,0.5)', boxShadow: '0 0 30px rgba(0,242,169,0.07) inset, 0 0 20px rgba(0,242,169,0.06)' }}
           transition={{ duration: 0.25 }}
           onClick={() => setActiveView('luxsync')}
         >
@@ -50,6 +50,10 @@ const Armeria = ({ setActiveView }: ArmeriaProps) => {
           </div>
 
           <div className="p-8 pb-6">
+            {/* Icono SVG — Onda de frecuencia */}
+            <svg className="w-10 h-10 mb-4" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="2,20 8,20 11,8 14,32 17,14 20,26 23,4 26,36 29,16 32,24 35,20 38,20" stroke="#00F2A9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
             {/* Eyebrow */}
             <p className="text-xs font-plex-mono text-menta/60 tracking-widest uppercase mb-2">
               Control DMX · IA en tiempo real
@@ -85,59 +89,67 @@ const Armeria = ({ setActiveView }: ArmeriaProps) => {
           <div className="px-8 py-3 flex justify-between items-center">
             <span className="text-xs font-plex-mono text-gris-neutro">Electron · TypeScript · Zero-Dep</span>
             <span className="text-xs font-plex-mono text-menta group-hover:translate-x-1 transition-transform duration-200">
-              Ver más →
+              [ ACCEDER_SISTEMA &gt; ]
             </span>
           </div>
         </motion.div>
 
         {/* ── DENTIAGEST ── */}
         <motion.div
-          className="relative border border-fucsia-neon/20 rounded-xl overflow-hidden bg-noche/60 backdrop-blur-sm group cursor-pointer"
-          whileHover={{ borderColor: 'rgba(232,0,232,0.45)', boxShadow: '0 0 30px rgba(232,0,232,0.08)' }}
+          className="relative border border-gris-trazado/20 rounded-xl overflow-hidden bg-[#0D0D1F] backdrop-blur-sm group cursor-pointer"
+          whileHover={{ borderColor: 'rgba(168,85,247,0.5)', boxShadow: '0 0 30px rgba(168,85,247,0.07) inset, 0 0 20px rgba(168,85,247,0.06)' }}
           transition={{ duration: 0.25 }}
           onClick={() => setActiveView('dentiagest')}
         >
           {/* Badge de estado */}
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-noche/80 border border-fucsia-neon/30 rounded-full px-3 py-1">
-            <span className="text-xs font-plex-mono text-fucsia-neon">En desarrollo · 85%</span>
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-noche/80 border border-purple-500/30 rounded-full px-3 py-1">
+            <span className="text-xs font-plex-mono text-purple-400">En desarrollo · 85%</span>
           </div>
 
           <div className="p-8 pb-6">
+            {/* Icono SVG — Escudo hexagonal con nodo */}
+            <svg className="w-10 h-10 mb-4" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 3L35 11V22C35 29.5 28.5 35.5 20 38C11.5 35.5 5 29.5 5 22V11L20 3Z" stroke="#A855F7" strokeWidth="1.5" strokeLinejoin="round"/>
+              <circle cx="20" cy="20" r="4" fill="#A855F7" fillOpacity="0.3" stroke="#A855F7" strokeWidth="1.5"/>
+              <line x1="20" y1="11" x2="20" y2="16" stroke="#A855F7" strokeWidth="1" strokeLinecap="round"/>
+              <line x1="20" y1="24" x2="20" y2="29" stroke="#A855F7" strokeWidth="1" strokeLinecap="round"/>
+              <line x1="11" y1="20" x2="16" y2="20" stroke="#A855F7" strokeWidth="1" strokeLinecap="round"/>
+              <line x1="24" y1="20" x2="29" y2="20" stroke="#A855F7" strokeWidth="1" strokeLinecap="round"/>
+            </svg>
             {/* Eyebrow */}
-            <p className="text-xs font-plex-mono text-fucsia-neon/60 tracking-widest uppercase mb-2">
+            <p className="text-xs font-plex-mono text-purple-400/60 tracking-widest uppercase mb-2">
               Gestión Dental · Web3 · IA Clínica
             </p>
-            <h3 className="text-3xl font-plex-mono font-bold text-hueso mb-3 group-hover:text-fucsia-neon transition-colors duration-300">
+            <h3 className="text-3xl font-plex-mono font-bold text-hueso mb-3 group-hover:text-purple-400 transition-colors duration-300">
               DentIAgest
             </h3>
             <p className="text-gris-neutro font-plex-sans text-sm leading-relaxed mb-6 max-w-md">
-              Plataforma de gestión dental de nueva generación con <span className="text-hueso">Selene Song Core</span> como reactor.
-              Ecosystem Web3 integrado, IA clínica y cumplimiento RGPD Art. 9 de fábrica.
+              Ecosistema soberano de gestión clínica. Multitenant, <span className="text-hueso">Web3 nativo</span> y automatización de flujo de caja con <span className="text-hueso">Selene Core</span>.
             </p>
 
             {/* Stats en línea */}
             <div className="flex gap-6">
               <div>
-                <p className="text-2xl font-plex-mono font-bold text-fucsia-neon">85%</p>
+                <p className="text-2xl font-plex-mono font-bold text-purple-400">85%</p>
                 <p className="text-xs text-gris-neutro font-plex-sans">Completado</p>
               </div>
               <div>
-                <p className="text-2xl font-plex-mono font-bold text-fucsia-neon">Web3</p>
+                <p className="text-2xl font-plex-mono font-bold text-purple-400">Web3</p>
                 <p className="text-xs text-gris-neutro font-plex-sans">Ecosystem</p>
               </div>
               <div>
-                <p className="text-2xl font-plex-mono font-bold text-fucsia-neon">RGPD</p>
+                <p className="text-2xl font-plex-mono font-bold text-purple-400">RGPD</p>
                 <p className="text-xs text-gris-neutro font-plex-sans">Art. 9 nativo</p>
               </div>
             </div>
           </div>
 
           {/* Línea inferior decorativa */}
-          <div className="h-px bg-gradient-to-r from-transparent via-fucsia-neon/30 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
           <div className="px-8 py-3 flex justify-between items-center">
             <span className="text-xs font-plex-mono text-gris-neutro">Next.js · GraphQL · Selene Song Core</span>
-            <span className="text-xs font-plex-mono text-fucsia-neon group-hover:translate-x-1 transition-transform duration-200">
-              Ver más →
+            <span className="text-xs font-plex-mono text-purple-400 group-hover:translate-x-1 transition-transform duration-200">
+              [ EXPEDIENTE_CLASIFICADO &gt; ]
             </span>
           </div>
         </motion.div>
