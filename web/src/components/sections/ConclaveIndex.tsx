@@ -94,7 +94,7 @@ function parseTextWithMedia(content: string): React.ReactNode[] {
     }
     const videoId = match[1];
     nodes.push(
-      <div key={`yt-${match.index}`} className="my-3 border border-menta/30 overflow-hidden" style={{ aspectRatio: '16/9' }}>
+      <div key={`yt-${match.index}`} className="max-w-2xl w-full aspect-video my-4">
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${videoId}`}
           title="YouTube video"
@@ -102,7 +102,7 @@ function parseTextWithMedia(content: string): React.ReactNode[] {
           allowFullScreen
           loading="lazy"
           sandbox="allow-scripts allow-same-origin allow-presentation"
-          className="w-full h-full border-0"
+          className="w-full h-full border border-menta/40"
         />
       </div>
     );
@@ -138,6 +138,10 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<DbProfile | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileUsername, setEditProfileUsername] = useState('');
+  const [editProfileLoading, setEditProfileLoading] = useState(false);
+  const [editProfileError, setEditProfileError] = useState<string | null>(null);
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
@@ -398,7 +402,12 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
             <div className="flex items-center gap-3">
               {/* Badge de identidad */}
               {profile && (
-                <div className="flex items-center gap-2.5 border border-menta/20 bg-noche/60 backdrop-blur-sm px-2.5 py-1.5">
+                <button
+                  type="button"
+                  onClick={() => { setEditProfileUsername(profile.username ?? ''); setEditProfileError(null); setIsEditingProfile(true); }}
+                  className="flex items-center gap-2.5 border border-menta/20 bg-noche/60 backdrop-blur-sm px-2.5 py-1.5 hover:ring-1 hover:ring-menta/50 transition-all cursor-pointer"
+                  title="Editar perfil"
+                >
                   {/* Avatar cuadrado — sin border-radius, estética terminal */}
                   <div
                     className="w-6 h-6 border border-menta/40 bg-noche overflow-hidden flex-shrink-0 relative"
@@ -422,7 +431,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
                   <span className="text-[11px] font-plex-mono text-menta tracking-wide hidden sm:inline">
                     {profile.username ?? 'netrunner'}
                   </span>
-                </div>
+                </button>
               )}
 
               {/* Nuevo Hilo */}
@@ -624,6 +633,96 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
             }}
             onClose={() => setShowOnboarding(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* EDITAR PERFIL — Modal inline */}
+      <AnimatePresence>
+        {isEditingProfile && session?.user?.id && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-noche/85 backdrop-blur-md p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setIsEditingProfile(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="w-full max-w-sm border border-menta/30 bg-noche p-6 shadow-[0_0_40px_rgba(0,242,169,0.06)]"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-sm font-plex-mono font-bold text-hueso flex items-center gap-2">
+                  <span className="w-1 h-4 bg-menta inline-block" />
+                  Editar Alias
+                </h3>
+                <button onClick={() => setIsEditingProfile(false)} className="text-gris-neutro hover:text-hueso transition-colors text-lg leading-none">✕</button>
+              </div>
+              {profile?.avatar_url && (
+                <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gris-trazado/20">
+                  <img src={profile.avatar_url} alt="" className="w-8 h-8 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+                  <span className="text-[10px] font-plex-mono text-gris-neutro/50">Avatar sincronizado desde OAuth</span>
+                </div>
+              )}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const clean = editProfileUsername.trim();
+                  if (clean.length < 3 || clean.length > 24) {
+                    setEditProfileError('Entre 3 y 24 caracteres.');
+                    return;
+                  }
+                  if (!/^[a-zA-Z0-9_-]+$/.test(clean)) {
+                    setEditProfileError('Solo letras, números, _ y -');
+                    return;
+                  }
+                  setEditProfileLoading(true);
+                  setEditProfileError(null);
+                  try {
+                    await updateProfile(session!.user.id, { username: clean });
+                    setProfile((prev) => prev ? { ...prev, username: clean } : prev);
+                    setIsEditingProfile(false);
+                  } catch (err: any) {
+                    setEditProfileError(err.message ?? 'Error al guardar.');
+                  } finally {
+                    setEditProfileLoading(false);
+                  }
+                }}
+              >
+                <label className="block text-[10px] font-plex-mono text-gris-neutro/60 uppercase tracking-wider mb-2">
+                  Nuevo Alias
+                </label>
+                <input
+                  value={editProfileUsername}
+                  onChange={(e) => setEditProfileUsername(e.target.value)}
+                  placeholder="netrunner_42"
+                  maxLength={24}
+                  className="w-full bg-noche border border-gris-trazado/40 px-4 py-3 text-sm font-plex-mono text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 mb-4"
+                />
+                {editProfileError && (
+                  <p className="text-xs text-red-400 font-plex-mono mb-3">{editProfileError}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={editProfileLoading || !editProfileUsername.trim()}
+                    className="flex-1 text-xs font-plex-mono text-noche bg-menta py-2 disabled:opacity-40 hover:bg-menta/90 transition-colors"
+                  >
+                    {editProfileLoading ? '...' : '[ GUARDAR ]'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="text-xs font-plex-mono text-gris-neutro border border-gris-trazado/30 px-4 py-2 hover:text-hueso transition-colors"
+                  >
+                    [ CANCELAR ]
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -991,7 +1090,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                 <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
                 {/* Punto de conexión */}
                 <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
-                <div className="bg-white/[0.02] border border-gris-trazado/15 hover:border-gris-trazado/30 transition-colors duration-200 p-4">
+                <div className="bg-[#16161a] border border-gris-trazado/30 hover:border-gris-trazado/50 transition-colors duration-200 p-4">
                   <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
                     {reply.author?.avatar_url ? (
                       <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
