@@ -314,34 +314,34 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
         
         <div className="flex flex-col md:flex-row justify-center gap-6 max-w-4xl mx-auto">
           {/* DJ Founder Tier */}
-          <div className="flex-1 border border-gris-trazado rounded-xl p-6 bg-noche hover:border-yellow-500/50 transition-colors text-left flex flex-col">
-            <h3 className="text-xl font-plex-mono text-yellow-500 mb-2">DJ FOUNDER</h3>
+          <div className="flex-1 border border-gris-trazado rounded-xl p-6 bg-noche hover:border-menta/50 transition-colors text-left flex flex-col">
+            <h3 className="text-xl font-plex-mono text-menta mb-2">DJ FOUNDER</h3>
             <p className="text-3xl font-bold text-hueso mb-4">$150 <span className="text-sm text-gris-neutro font-normal">/ pago único</span></p>
             <ul className="text-sm font-plex-sans text-gris-neutro space-y-2 mb-8 flex-1">
-              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Control de luces reactivo (Selene IA)</li>
-              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Acceso al Motor Omniliquid</li>
-              <li className="flex items-center gap-2"><span className="text-yellow-500">✓</span> Soporte directo fundador</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Control de luces reactivo (Selene IA)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Acceso al Motor Omniliquid</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Soporte directo fundador</li>
               <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin acceso a Hephaestus FX</li>
               <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin Chronos Studio Timeline</li>
             </ul>
-            <button className="w-full py-3 border border-yellow-500/50 text-yellow-500 font-plex-mono text-sm rounded hover:bg-yellow-500/10 transition-colors">
+            <button className="w-full py-3 border border-menta/50 bg-menta text-noche font-bold font-plex-mono text-sm rounded hover:bg-menta/90 transition-colors">
               Solicitar Licencia
             </button>
           </div>
 
-          {/* Full Suite Tier */}
-          <div className="flex-1 border border-menta rounded-xl p-6 bg-noche shadow-[0_0_30px_rgba(0,229,255,0.05)] hover:shadow-[0_0_40px_rgba(0,229,255,0.15)] transition-all text-left flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-menta text-noche text-xs font-bold px-3 py-1 font-plex-mono">PRO</div>
-            <h3 className="text-xl font-plex-mono text-menta mb-2">FULL SUITE</h3>
+          {/* Full Suite Tier — Premium Violeta */}
+          <div className="flex-1 border border-purple-400 rounded-xl p-6 bg-noche shadow-[0_0_30px_rgba(168,85,247,0.1)] hover:shadow-[0_0_40px_rgba(168,85,247,0.25)] transition-all text-left flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-purple-400 text-noche text-xs font-bold px-3 py-1 font-plex-mono">PRO</div>
+            <h3 className="text-xl font-plex-mono text-purple-400 mb-2">FULL SUITE</h3>
             <p className="text-3xl font-bold text-hueso mb-4">$350 <span className="text-sm text-gris-neutro font-normal">/ pago único</span></p>
             <ul className="text-sm font-plex-sans text-gris-neutro space-y-2 mb-8 flex-1">
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Todo lo incluido en DJ Founder</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Desbloqueo Hephaestus (Automatización FX)</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Desbloqueo Chronos Studio (Timeline editor)</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> 2 Activaciones (Estudio + Directo)</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Actualizaciones de por vida</li>
+              <li className="flex items-center gap-2"><span className="text-purple-400">✓</span> Todo lo incluido en DJ Founder</li>
+              <li className="flex items-center gap-2"><span className="text-purple-400">✓</span> Desbloqueo Hephaestus (Automatización FX)</li>
+              <li className="flex items-center gap-2"><span className="text-purple-400">✓</span> Desbloqueo Chronos Studio (Timeline editor)</li>
+              <li className="flex items-center gap-2"><span className="text-purple-400">✓</span> 2 Activaciones (Estudio + Directo)</li>
+              <li className="flex items-center gap-2"><span className="text-purple-400">✓</span> Actualizaciones de por vida</li>
             </ul>
-            <button className="w-full py-3 bg-menta text-noche font-bold font-plex-mono text-sm rounded hover:bg-[#00cce6] transition-colors">
+            <button className="w-full py-3 bg-gradient-to-r from-purple-400 to-fuchsia-500 text-noche font-bold font-plex-mono text-sm rounded hover:from-purple-300 hover:to-fuchsia-400 transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">
               Solicitar Licencia PRO
             </button>
           </div>
