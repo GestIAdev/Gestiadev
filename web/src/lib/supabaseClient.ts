@@ -17,14 +17,22 @@ export interface DbCategory {
   created_at: string;
 }
 
+export interface DbProfile {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  created_at: string;
+}
+
 export interface DbThread {
   id: string;
+  author_id: string;
   title: string;
   content: string;
   is_pinned: boolean;
   created_at: string;
   // Relaciones via JOIN
-  author: { username: string } | null;
+  author: { username: string; avatar_url: string | null } | null;
   category: { name: string; slug: string } | null;
   // Contador calculado via Supabase (requires DB view or RPC)
   reply_count: number;
@@ -32,9 +40,10 @@ export interface DbThread {
 
 export interface DbReply {
   id: string;
+  author_id: string;
   content: string;
   created_at: string;
-  author: { username: string } | null;
+  author: { username: string; avatar_url: string | null } | null;
 }
 
 // ============================================================
@@ -56,11 +65,12 @@ export async function fetchThreads(categorySlug?: string): Promise<DbThread[]> {
     .from('threads')
     .select(`
       id,
+      author_id,
       title,
       content,
       is_pinned,
       created_at,
-      author:profiles!author_id ( username ),
+      author:profiles!author_id ( username, avatar_url ),
       category:categories!category_id ( name, slug ),
       reply_count:replies ( count )
     `)
@@ -84,6 +94,7 @@ export async function fetchThreads(categorySlug?: string): Promise<DbThread[]> {
   // Normalizar el count que Supabase devuelve como array [{count: N}]
   return (data ?? []).map((row: any) => ({
     ...row,
+    author: Array.isArray(row.author) ? row.author[0] : row.author,
     reply_count: Array.isArray(row.reply_count) ? (row.reply_count[0]?.count ?? 0) : (row.reply_count ?? 0),
   }));
 }
@@ -103,9 +114,10 @@ export async function fetchReplies(threadId: string): Promise<DbReply[]> {
     .from('replies')
     .select(`
       id,
+      author_id,
       content,
       created_at,
-      author:profiles!author_id ( username )
+      author:profiles!author_id ( username, avatar_url )
     `)
     .eq('thread_id', threadId)
     .order('created_at', { ascending: true });
@@ -126,5 +138,30 @@ export async function insertReply(payload: {
   content: string;
 }): Promise<void> {
   const { error } = await supabase.from('replies').insert(payload);
+  if (error) throw error;
+}
+
+// ============================================================
+// PROFILES — WAVE 2530
+// ============================================================
+
+export async function fetchProfile(userId: string): Promise<DbProfile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, avatar_url, created_at')
+    .eq('id', userId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+export async function updateProfile(
+  userId: string,
+  updates: { username?: string; avatar_url?: string }
+): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId);
   if (error) throw error;
 }

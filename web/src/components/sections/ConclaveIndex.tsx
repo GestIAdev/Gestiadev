@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply } from '@/lib/supabaseClient';
-import type { DbCategory, DbThread, DbReply } from '@/lib/supabaseClient';
+import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply, fetchProfile, updateProfile } from '@/lib/supabaseClient';
+import type { DbCategory, DbThread, DbReply, DbProfile } from '@/lib/supabaseClient';
 import type { View } from '@/app/page';
 
 // ============================================================
@@ -86,6 +86,8 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
   const [selectedThread, setSelectedThread] = useState<LiveThread | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<DbProfile | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState('');
@@ -119,6 +121,12 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
     // 1. Obtener la sesión actual si ya existe (ej. tab refresco, SSR hydration)
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      if (data.session?.user?.id) {
+        fetchProfile(data.session.user.id).then((p) => {
+          setProfile(p);
+          if (p && !p.username) setShowOnboarding(true);
+        });
+      }
     });
 
     // 2. El "Atrapasueños": Escuchar cuando Supabase procesa el token de la URL
@@ -126,10 +134,20 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
       setSession(newSession);
       
       // 💎 Estética Cyberpunk: Limpiar el chorrón de parámetros de la URL sin recargar
-      // Cuando el usuario hace login (SIGNED_IN), Google/Discord redirect con ?code=... etc.
-      // Esto lo saca de la URL limpiamente, invisiblemente.
       if (_event === 'SIGNED_IN') {
         window.history.replaceState({}, document.title, window.location.pathname);
+        // Cargar perfil tras login exitoso
+        if (newSession?.user?.id) {
+          fetchProfile(newSession.user.id).then((p) => {
+            setProfile(p);
+            if (p && !p.username) setShowOnboarding(true);
+          });
+        }
+      }
+      // Limpiar perfil al cerrar sesión
+      if (_event === 'SIGNED_OUT') {
+        setProfile(null);
+        setShowOnboarding(false);
       }
     });
 
@@ -227,18 +245,20 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
             <button
               key={cat.id}
               onClick={() => { setSelectedCategory(cat); setConclaveView('category'); }}
-              className="text-left border border-gris-trazado/50 rounded-lg p-6 bg-noche/90 backdrop-blur-md hover:border-menta/50 hover:shadow-[0_0_20px_rgba(0,229,255,0.15)] transition-all duration-200 group"
+              className="text-left border border-gris-trazado/30 p-6 bg-noche/90 backdrop-blur-md hover:border-menta/60 hover:shadow-[0_0_25px_rgba(0,242,169,0.12),inset_0_0_25px_rgba(0,242,169,0.03)] transition-all duration-300 group relative overflow-hidden"
             >
-              <div className="flex items-start gap-4">
-                <span className="text-menta/70 group-hover:text-menta transition-colors mt-0.5 flex-shrink-0">
+              {/* Scan-line decorativa al hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,242,169,0.015)_2px,rgba(0,242,169,0.015)_4px)] pointer-events-none" />
+              <div className="flex items-start gap-4 relative z-10">
+                <span className="text-menta/50 group-hover:text-menta group-hover:drop-shadow-[0_0_6px_rgba(0,242,169,0.5)] transition-all duration-300 mt-0.5 flex-shrink-0">
                   {categoryIconMap[iconKey]}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors">{cat.name}</p>
-                    <span className="text-[10px] font-plex-mono text-gris-neutro">{catThreadCount} hilos</span>
+                    <span className="text-[10px] font-plex-mono text-gris-neutro/50 group-hover:text-menta/60 transition-colors tabular-nums">[{catThreadCount}]</span>
                   </div>
-                  <p className="text-xs font-plex-sans text-gris-neutro leading-relaxed">{cat.description}</p>
+                  <p className="text-xs font-plex-sans text-gris-neutro/70 leading-relaxed">{cat.description}</p>
                 </div>
               </div>
             </button>
@@ -251,32 +271,46 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
         <span className="w-1.5 h-5 bg-menta"></span> Hilos Recientes
       </h2>
       {threads.length === 0 ? (
-        <div className="border border-gris-trazado/30 border-dashed rounded-lg p-12 text-center mb-10">
+        <div className="border border-gris-trazado/30 border-dashed p-12 text-center mb-10">
           <p className="text-sm font-plex-mono text-gris-neutro/50">Aún no hay hilos. ¡Sé el primero en publicar!</p>
         </div>
       ) : (
-        <div className="flex flex-col mb-10 border border-gris-trazado/30 rounded-lg overflow-hidden bg-noche/80 backdrop-blur-md">
+        <div className="flex flex-col mb-10 border border-gris-trazado/30 overflow-hidden bg-noche/80 backdrop-blur-md">
           {threads.map((thread, idx) => (
             <button
               key={thread.id}
               onClick={() => { setSelectedThread(thread); setConclaveView('thread'); }}
-              className={`text-left w-full px-6 py-5 hover:bg-menta/5 transition-all duration-200 group ${
-                idx < threads.length - 1 ? 'border-b border-gris-trazado/40' : ''
+              className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group ${
+                idx < threads.length - 1 ? 'border-b border-gris-trazado/20' : ''
               }`}
             >
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {thread.is_pinned && (
-                  <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 rounded-full tracking-widest">▲ PINNED</span>
-                )}
-                {thread.category && (
-                  <span className="text-[10px] font-plex-mono text-gris-neutro/70 border border-gris-trazado/50 px-2 py-0.5 rounded-full">{thread.category.name}</span>
-                )}
-              </div>
-              <p className="text-base font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors leading-snug">{thread.title}</p>
-              <div className="flex items-center gap-5 mt-2">
-                <span className="text-xs font-plex-sans text-gris-neutro">por <span className="text-menta/80 font-plex-mono">{thread.author?.username ?? 'anon'}</span></span>
-                <span className="text-xs font-plex-sans text-gris-neutro/60">{thread.reply_count} respuestas</span>
-                <span className="text-xs font-plex-sans text-gris-neutro/40">{relativeTime(thread.created_at)}</span>
+              {/* Badges row — cuadrados, sin rounded-full */}
+              {(thread.is_pinned || thread.category) && (
+                <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+                  {thread.is_pinned && (
+                    <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
+                  )}
+                  {thread.category && (
+                    <span className="text-[10px] font-plex-mono text-gris-neutro/60 border border-gris-trazado/30 px-2 py-0.5">{thread.category.name}</span>
+                  )}
+                </div>
+              )}
+              {/* Título — prominente */}
+              <p className="text-[15px] font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors leading-snug mb-3">{thread.title}</p>
+              {/* Metadatos — separados con borde */}
+              <div className="flex items-center gap-4 pt-2 border-t border-gris-trazado/10">
+                <div className="flex items-center gap-2">
+                  {thread.author?.avatar_url ? (
+                    <img src={thread.author.avatar_url} alt="" className="w-4 h-4 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="w-4 h-4 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[8px] font-plex-mono text-gris-neutro">
+                      {(thread.author?.username ?? '?')[0].toUpperCase()}
+                    </span>
+                  )}
+                  <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
+                </div>
+                <span className="text-[10px] font-plex-mono text-gris-neutro/40 tabular-nums">{thread.reply_count} resp.</span>
+                <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(thread.created_at)}</span>
               </div>
             </button>
           ))}
@@ -311,12 +345,53 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           {session ? (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-transparent border border-menta text-menta font-plex-mono text-xs px-4 py-2.5 rounded-md hover:bg-menta/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all"
-            >
-              + Nuevo Hilo
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Badge de identidad */}
+              {profile && (
+                <div className="flex items-center gap-2.5 border border-menta/20 bg-noche/60 backdrop-blur-sm px-2.5 py-1.5">
+                  {/* Avatar cuadrado — sin border-radius, estética terminal */}
+                  <div
+                    className="w-6 h-6 border border-menta/40 bg-noche overflow-hidden flex-shrink-0 relative"
+                    style={{ imageRendering: 'pixelated' }}
+                  >
+                    {profile.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.username ?? 'avatar'}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center text-menta/60 text-[9px] font-plex-mono">
+                        {(profile.username ?? '?')[0].toUpperCase()}
+                      </span>
+                    )}
+                    {/* Dot online */}
+                    <span className="absolute -bottom-px -right-px w-1.5 h-1.5 bg-menta border border-noche" />
+                  </div>
+                  <span className="text-[11px] font-plex-mono text-menta tracking-wide hidden sm:inline">
+                    {profile.username ?? 'netrunner'}
+                  </span>
+                </div>
+              )}
+
+              {/* Nuevo Hilo */}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 bg-transparent border border-menta text-menta font-plex-mono text-xs px-4 py-2.5 rounded-md hover:bg-menta/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all"
+              >
+                + Nuevo Hilo
+              </button>
+
+              {/* Logout */}
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="text-[10px] font-plex-mono text-gris-neutro/40 hover:text-red-400 transition-colors"
+                title="Cerrar sesión"
+              >
+                ↙ OUT
+              </button>
+            </div>
           ) : (
             <div className="relative">
               {/* Botón principal de login */}
@@ -488,6 +563,20 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
         )}
       </AnimatePresence>
 
+      {/* ONBOARDING — Elegir alias en primer login */}
+      <AnimatePresence>
+        {showOnboarding && session?.user?.id && (
+          <OnboardingModal
+            userId={session.user.id}
+            onComplete={(username) => {
+              setProfile((prev) => prev ? { ...prev, username } : prev);
+              setShowOnboarding(false);
+            }}
+            onClose={() => setShowOnboarding(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* RETORNO */}
       <button
         onClick={() => setActiveView('hero')}
@@ -520,7 +609,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
   };
   const iconKey = SLUG_ICON_MAP[category.slug] ?? 'monitor';
   return (
-  <div className="bg-noche/80 backdrop-blur-md border border-gris-trazado/50 rounded-xl p-6">
+  <div className="bg-noche/80 backdrop-blur-md border border-gris-trazado/30 p-6">
     {/* Breadcrumb */}
     <div className="flex items-center gap-2 mb-6">
       <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
@@ -541,7 +630,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
 
     {/* Thread List */}
     {threads.length === 0 ? (
-      <div className="border border-gris-trazado/30 border-dashed rounded-lg p-12 text-center">
+      <div className="border border-gris-trazado/30 border-dashed p-12 text-center">
         <p className="text-sm font-plex-mono text-gris-neutro/60">No hay hilos en esta categoría todavía.</p>
         {session && (
           <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
@@ -550,25 +639,34 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
         )}
       </div>
     ) : (
-      <div className="flex flex-col mb-8 border border-gris-trazado/30 rounded-lg overflow-hidden bg-noche/80 backdrop-blur-md">
+      <div className="flex flex-col mb-8 border border-gris-trazado/30 overflow-hidden bg-noche/80 backdrop-blur-md">
         {threads.map((thread, idx) => (
           <button
             key={thread.id}
             onClick={() => onSelectThread(thread)}
-            className={`text-left w-full px-6 py-5 hover:bg-menta/5 transition-all duration-200 group ${
-              idx < threads.length - 1 ? 'border-b border-gris-trazado/40' : ''
+            className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group ${
+              idx < threads.length - 1 ? 'border-b border-gris-trazado/20' : ''
             }`}
           >
-            <div className="flex items-center gap-2 mb-2">
-              {thread.is_pinned && (
-                <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 rounded-full tracking-widest">▲ PINNED</span>
-              )}
-            </div>
-            <p className="text-base font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors leading-snug">{thread.title}</p>
-            <div className="flex items-center gap-5 mt-2">
-              <span className="text-xs font-plex-sans text-gris-neutro">por <span className="text-menta/80 font-plex-mono">{thread.author?.username ?? 'anon'}</span></span>
-              <span className="text-xs font-plex-sans text-gris-neutro/60">{thread.reply_count} respuestas</span>
-              <span className="text-xs font-plex-sans text-gris-neutro/40">{relativeTime(thread.created_at)}</span>
+            {thread.is_pinned && (
+              <div className="mb-2.5">
+                <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
+              </div>
+            )}
+            <p className="text-[15px] font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors leading-snug mb-3">{thread.title}</p>
+            <div className="flex items-center gap-4 pt-2 border-t border-gris-trazado/10">
+              <div className="flex items-center gap-2">
+                {thread.author?.avatar_url ? (
+                  <img src={thread.author.avatar_url} alt="" className="w-4 h-4 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <span className="w-4 h-4 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[8px] font-plex-mono text-gris-neutro">
+                    {(thread.author?.username ?? '?')[0].toUpperCase()}
+                  </span>
+                )}
+                <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
+              </div>
+              <span className="text-[10px] font-plex-mono text-gris-neutro/40 tabular-nums">{thread.reply_count} resp.</span>
+              <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(thread.created_at)}</span>
             </div>
           </button>
         ))}
@@ -640,10 +738,10 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       </div>
 
       {/* Thread Header — glassmorphic con borde menta */}
-      <div className="bg-gradient-to-br from-noche/95 to-noche/80 backdrop-blur-md shadow-2xl border border-gris-trazado/30 border-l-4 border-l-menta/60 rounded-xl p-6 mb-6">
+      <div className="bg-gradient-to-br from-noche/95 to-noche/80 backdrop-blur-md shadow-2xl border border-gris-trazado/30 border-l-4 border-l-menta/60 p-6 mb-6">
         <div className="flex items-center gap-3 mb-3">
           {thread.is_pinned && (
-            <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 rounded-full tracking-widest">▲ PINNED</span>
+            <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
           )}
         </div>
         <h2 className="text-2xl font-plex-mono font-bold text-hueso mb-4 leading-tight">{thread.title}</h2>
@@ -667,17 +765,30 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
         {repliesLoading ? (
           <p className="text-xs font-plex-mono text-gris-neutro/40 text-center py-8">Cargando respuestas...</p>
         ) : replies.length === 0 ? (
-          <div className="border border-gris-trazado/20 border-dashed rounded-lg p-10 text-center">
+          <div className="border border-gris-trazado/20 border-dashed p-10 text-center">
             <p className="text-xs font-plex-mono text-gris-neutro/40">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
           </div>
         ) : (
           replies.map((reply) => (
-            <div key={reply.id} className="bg-noche/60 backdrop-blur-sm border border-gris-trazado/20 rounded-lg p-5 mb-4">
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gris-trazado/20">
-                <span className="text-xs font-plex-mono text-menta/80">{reply.author?.username ?? 'anon'}</span>
-                <span className="text-[10px] font-plex-sans text-gris-neutro/40">{relativeTime(reply.created_at)}</span>
+            <div key={reply.id} className="relative ml-4 pl-5 mb-3 last:mb-0">
+              {/* Línea vertical del árbol */}
+              <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
+              {/* Punto de conexión */}
+              <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
+              <div className="bg-white/[0.02] border border-gris-trazado/15 hover:border-gris-trazado/30 transition-colors duration-200 p-4">
+                <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
+                  {reply.author?.avatar_url ? (
+                    <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="w-5 h-5 border border-gris-trazado/40 bg-gris-trazado/20 flex items-center justify-center text-[9px] font-plex-mono text-gris-neutro">
+                      {(reply.author?.username ?? '?')[0].toUpperCase()}
+                    </span>
+                  )}
+                  <span className="text-xs font-plex-mono text-menta/70">{reply.author?.username ?? 'anon'}</span>
+                  <span className="text-[10px] font-plex-mono text-gris-neutro/30 ml-auto tabular-nums">{relativeTime(reply.created_at)}</span>
+                </div>
+                <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{reply.content}</p>
               </div>
-              <p className="text-sm font-plex-sans text-gris-neutro whitespace-pre-wrap leading-relaxed">{reply.content}</p>
             </div>
           ))
         )}
@@ -685,28 +796,28 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
 
       {/* Reply form — funcional si hay sesión */}
       {session ? (
-        <form onSubmit={handleReplySubmit} className="border border-gris-trazado/40 rounded-xl p-5 bg-noche/60 backdrop-blur-sm mb-8">
+        <form onSubmit={handleReplySubmit} className="border border-gris-trazado/30 p-5 bg-noche/60 backdrop-blur-sm mb-8">
           <p className="text-xs font-plex-mono text-menta/60 mb-3">// Responder en este hilo</p>
           <textarea
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             rows={4}
             placeholder="Escribe tu respuesta..."
-            className="w-full bg-noche/80 border border-gris-trazado/30 rounded-lg px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 resize-none mb-3"
+            className="w-full bg-noche/80 border border-gris-trazado/30 px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 resize-none mb-3"
           />
           {replyError && <p className="text-xs text-red-400 font-plex-mono mb-2">{replyError}</p>}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={replySubmitting || !replyContent.trim()}
-              className="text-xs font-plex-mono text-noche bg-menta px-5 py-2 rounded-lg disabled:opacity-40 hover:bg-menta/90 transition-colors"
+              className="text-xs font-plex-mono text-noche bg-menta px-5 py-2 disabled:opacity-40 hover:bg-menta/90 transition-colors"
             >
-              {replySubmitting ? 'Enviando...' : 'Enviar Respuesta'}
+              {replySubmitting ? 'Enviando...' : '[ ENVIAR ]'}
             </button>
           </div>
         </form>
       ) : (
-        <div className="border border-gris-trazado/30 border-dashed rounded-xl p-5 bg-noche/40 mb-8 text-center">
+        <div className="border border-gris-trazado/30 border-dashed p-5 bg-noche/40 mb-8 text-center">
           <p className="text-xs font-plex-mono text-gris-neutro/40">Inicia sesión para responder en este hilo.</p>
         </div>
       )}
@@ -860,6 +971,119 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
       </form>
     </motion.div>
   </motion.div>
+  );
+};
+
+// ============================================================
+// ONBOARDING MODAL — Elegir alias cyberpunk (WAVE 2530)
+// ============================================================
+interface OnboardingModalProps {
+  userId: string;
+  onComplete: (username: string) => void;
+  onClose: () => void;
+}
+
+const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) => {
+  const [username, setUsername] = useState('');
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = username.trim();
+
+    if (clean.length < 3 || clean.length > 24) {
+      setError('El alias debe tener entre 3 y 24 caracteres.');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(clean)) {
+      setError('Solo letras, números, guiones y underscores.');
+      return;
+    }
+
+    setChecking(true);
+    setError(null);
+
+    try {
+      // Verificar disponibilidad
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', clean)
+        .maybeSingle();
+
+      if (existing) {
+        setError('Ese alias ya está en uso. Elige otro.');
+        setChecking(false);
+        return;
+      }
+
+      await updateProfile(userId, { username: clean });
+      onComplete(clean);
+    } catch {
+      setError('Error al guardar. Inténtalo de nuevo.');
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-noche/90 backdrop-blur-md p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.92, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="w-full max-w-md border border-menta/30 bg-noche p-8 shadow-[0_0_60px_rgba(0,242,169,0.07)]"
+      >
+        <p className="text-[10px] font-plex-mono text-menta/60 tracking-[0.3em] mb-4">
+          // PROTOCOLO DE IDENTIFICACIÓN
+        </p>
+        <h2 className="text-xl font-plex-mono font-bold text-hueso mb-2">
+          Elige tu <span className="text-menta">alias</span>
+        </h2>
+        <p className="text-xs font-plex-sans text-gris-neutro mb-6 leading-relaxed">
+          Este será tu identificador en El Cónclave. Podrás cambiarlo más adelante.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center gap-2 border-b border-gris-trazado/50 mb-2 pb-1 focus-within:border-menta/60 transition-colors">
+            <span className="text-menta font-plex-mono text-sm">$</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="netrunner_42"
+              maxLength={24}
+              autoFocus
+              className="flex-1 bg-transparent px-2 py-2 text-sm font-plex-mono text-hueso placeholder:text-gris-neutro/30 focus:outline-none"
+            />
+          </div>
+
+          <p className="text-[10px] font-plex-mono text-gris-neutro/30 mb-5">
+            3-24 chars · a-z 0-9 _ -
+          </p>
+
+          {error && (
+            <p className="text-xs font-plex-mono text-red-400 mb-4">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={checking || !username.trim()}
+            className="w-full text-xs font-plex-mono text-noche bg-menta font-bold py-3 hover:bg-menta/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {checking ? '[ VERIFICANDO... ]' : '[ CONFIRMAR ALIAS ]'}
+          </button>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 };
 
