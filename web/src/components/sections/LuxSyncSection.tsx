@@ -318,11 +318,11 @@ const LuxSyncSection = ({ setActiveView }: LuxSyncSectionProps) => {
             <h3 className="text-xl font-plex-mono text-menta mb-2">DJ FOUNDER</h3>
             <p className="text-3xl font-bold text-hueso mb-4">$150 <span className="text-sm text-gris-neutro font-normal">/ pago único</span></p>
             <ul className="text-sm font-plex-sans text-gris-neutro space-y-2 mb-8 flex-1">
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Control de luces reactivo (Selene IA)</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Acceso al Motor Omniliquid</li>
-              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Soporte directo fundador</li>
-              <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin acceso a Hephaestus FX</li>
-              <li className="flex items-center gap-2 opacity-50"><span className="text-red-500">✕</span> Sin Chronos Studio Timeline</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Motor IA Selene (Reacción FFT Radix-2)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Omniliquid Engine (Físicas de luz fluidas)</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Forja de Fixtures y Autopatcheo en Enjambre</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Constructor de Shows Automatizado</li>
+              <li className="flex items-center gap-2"><span className="text-menta">✓</span> Licencia y actualizaciones Vitalicias (Tier DJ)</li>
             </ul>
             <button className="w-full py-3 border border-menta/50 bg-menta text-noche font-bold font-plex-mono text-sm rounded hover:bg-menta/90 transition-colors">
               Solicitar Licencia
