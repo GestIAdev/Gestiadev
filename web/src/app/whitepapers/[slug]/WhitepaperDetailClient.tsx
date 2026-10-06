@@ -77,7 +77,8 @@ export default function WhitepaperDetailClient({ slug }: WhitepaperDetailClientP
         </div>
       ) : (
         <div
-          className="prose prose-invert max-w-none
+          className="bg-black/85 backdrop-blur-md p-8 md:p-12 rounded-xl border border-white/5
+            prose prose-invert max-w-none
             prose-p:text-gris-neutro prose-p:font-plex-sans prose-p:leading-relaxed
             prose-headings:font-plex-mono prose-headings:text-hueso prose-headings:font-bold
             prose-h1:text-2xl prose-h1:text-menta prose-h1:mb-4
