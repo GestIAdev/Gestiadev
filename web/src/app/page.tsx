@@ -41,8 +41,8 @@ export default function Home() {
             </div>
 
             <p className="text-base md:text-lg text-gris-neutro max-w-2xl mx-auto mb-8 font-plex-sans">
-              El primer ecosistema que fusiona renderizado de vídeo generativo (GLSL) y control DMX bajo
-              un mismo cerebro neuronal. Latencia cero. Paridad fotón a fotón. Cero dependencias externas.
+              The first ecosystem to fuse generative video rendering (GLSL) and DMX control under a
+              single cognitive core. Zero latency. Photon-to-photon parity. Zero external dependencies.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

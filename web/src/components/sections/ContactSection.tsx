@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Mail, Github, MessageCircle } from 'lucide-react';
+import { Mail, Github, MessageCircle, Instagram } from 'lucide-react';
 
 const Contact = () => {
   return (
@@ -72,6 +72,22 @@ const Contact = () => {
                   Developer Hub — Support & .lfx Fixtures
                 </Link>
               </div>
+            </div>
+
+            {/* Social / Showcase */}
+            <div className="border-l-2 border-gris-trazado pl-4">
+              <div className="text-hueso font-semibold mb-1.5 text-xs font-plex-mono uppercase tracking-wider">
+                Showcase
+              </div>
+              <a
+                href="https://instagram.com/gestiadev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-gris-neutro hover:text-menta transition-colors group"
+              >
+                <Instagram className="w-4 h-4 flex-shrink-0" />
+                <span className="group-hover:underline">instagram.com/gestiadev</span>
+              </a>
             </div>
           </div>
 
