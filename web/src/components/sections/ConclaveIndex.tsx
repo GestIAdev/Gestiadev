@@ -297,7 +297,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
             <button
               key={cat.id}
               onClick={() => { setSelectedCategory(cat); setConclaveView('category'); }}
-              className="text-left border border-gris-trazado/30 p-6 bg-noche/90 backdrop-blur-md hover:border-menta/60 hover:shadow-[0_0_25px_rgba(0,242,169,0.12),inset_0_0_25px_rgba(0,242,169,0.03)] transition-all duration-300 group relative overflow-hidden"
+              className="text-left bg-black/60 backdrop-blur-md border border-white/5 hover:bg-black/80 hover:border-menta/50 rounded-xl p-6 hover:shadow-[0_0_25px_rgba(0,242,169,0.12),inset_0_0_25px_rgba(0,242,169,0.03)] transition-all duration-300 group relative overflow-hidden"
             >
               {/* Scan-line decorativa al hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,242,169,0.015)_2px,rgba(0,242,169,0.015)_4px)] pointer-events-none" />
@@ -308,9 +308,9 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors">{cat.name}</p>
-                    <span className="text-[10px] font-plex-mono text-gris-neutro/50 group-hover:text-menta/60 transition-colors tabular-nums">[{catThreadCount}]</span>
+                    <span className="text-[10px] font-plex-mono text-gray-400 group-hover:text-menta/60 transition-colors tabular-nums">[{catThreadCount}]</span>
                   </div>
-                  <p className="text-xs font-plex-sans text-gris-neutro/70 leading-relaxed">{cat.description}</p>
+                  <p className="text-xs font-plex-sans text-gray-300 leading-relaxed">{cat.description}</p>
                 </div>
               </div>
             </button>
@@ -323,11 +323,11 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
         <span className="w-1.5 h-5 bg-menta"></span> Hilos Recientes
       </h2>
       {threads.length === 0 ? (
-        <div className="border border-gris-trazado/30 border-dashed p-12 text-center mb-10">
-          <p className="text-sm font-plex-mono text-gris-neutro/50">Aún no hay hilos. ¡Sé el primero en publicar!</p>
+        <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-12 text-center mb-10">
+          <p className="text-sm font-plex-mono text-gray-400">Aún no hay hilos. ¡Sé el primero en publicar!</p>
         </div>
       ) : (
-        <div className="flex flex-col mb-10 border border-gris-trazado/30 overflow-hidden bg-noche/80 backdrop-blur-md">
+        <div className="flex flex-col mb-10 bg-black/70 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden">
           {threads.map((thread, idx) => (
             <button
               key={thread.id}
@@ -343,7 +343,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                     <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
                   )}
                   {thread.category && (
-                    <span className="text-[10px] font-plex-mono text-gris-neutro/60 border border-gris-trazado/30 px-2 py-0.5">{thread.category.name}</span>
+                    <span className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5">{thread.category.name}</span>
                   )}
                 </div>
               )}
@@ -361,8 +361,8 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                   )}
                   <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
                 </div>
-                <span className="text-[10px] font-plex-mono text-gris-neutro/40 tabular-nums">{thread.reply_count} resp.</span>
-                <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(thread.created_at)}</span>
+                <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} resp.</span>
+                <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
               </div>
             </button>
           ))}
@@ -383,7 +383,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
       {/* HERO HEADER */}
-      <div className="flex flex-col sm:flex-row items-start justify-between mb-10 gap-4 p-6 rounded-xl bg-noche/40 backdrop-blur-sm border border-menta/10">
+      <div className="flex flex-col sm:flex-row items-start justify-between mb-10 gap-4 p-6 rounded-xl bg-black/60 backdrop-blur-md border border-white/5">
         <div>
           <p className="text-[10px] font-plex-mono text-menta/60 tracking-[0.3em] uppercase mb-2">
             // WAVE 2503 · Foro Nativo
@@ -443,7 +443,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
               {/* Logout */}
               <button
                 onClick={() => supabase.auth.signOut()}
-                className="text-[10px] font-plex-mono text-gris-neutro/40 hover:text-red-400 transition-colors"
+                className="text-[10px] font-plex-mono text-gray-400 hover:text-red-400 transition-colors"
                 title="Cerrar sesión"
               >
                 ↙ OUT
@@ -756,7 +756,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
   };
   const iconKey = SLUG_ICON_MAP[category.slug] ?? 'monitor';
   return (
-  <div className="bg-noche/80 backdrop-blur-md border border-gris-trazado/30 p-6">
+  <div className="bg-black/70 backdrop-blur-md border border-white/5 rounded-xl p-6">
     {/* Breadcrumb */}
     <div className="flex items-center gap-2 mb-6">
       <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
@@ -777,8 +777,8 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
 
     {/* Thread List */}
     {threads.length === 0 ? (
-      <div className="border border-gris-trazado/30 border-dashed p-12 text-center">
-        <p className="text-sm font-plex-mono text-gris-neutro/60">No hay hilos en esta categoría todavía.</p>
+      <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-12 text-center">
+        <p className="text-sm font-plex-mono text-gray-400">No hay hilos en esta categoría todavía.</p>
         {session && (
           <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
             Sé el primero en publicar →
@@ -786,7 +786,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
         )}
       </div>
     ) : (
-      <div className="flex flex-col mb-8 border border-gris-trazado/30 overflow-hidden bg-noche/80 backdrop-blur-md">
+      <div className="flex flex-col mb-8 bg-black/60 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden">
         {threads.map((thread, idx) => (
           <button
             key={thread.id}
@@ -812,8 +812,8 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
                 )}
                 <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
               </div>
-              <span className="text-[10px] font-plex-mono text-gris-neutro/40 tabular-nums">{thread.reply_count} resp.</span>
-              <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(thread.created_at)}</span>
+              <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} resp.</span>
+              <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
             </div>
           </button>
         ))}
@@ -981,7 +981,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       </div>
 
       {/* Thread Header */}
-      <div className="bg-gradient-to-br from-noche/95 to-noche/80 backdrop-blur-md shadow-2xl border border-gris-trazado/30 border-l-4 border-l-menta/60 p-6 mb-6">
+      <div className="bg-black/70 backdrop-blur-md shadow-2xl border border-white/5 border-l-4 border-l-menta/60 rounded-xl p-6 mb-6">
         <div className="flex items-start gap-3 mb-3">
           {thread.is_pinned && (
             <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
@@ -991,14 +991,14 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
             <div className="flex items-center gap-2 ml-auto">
               <button
                 onClick={() => { setEditingThread(true); setThreadActionError(null); }}
-                className="text-[10px] font-plex-mono text-gris-neutro/50 border border-gris-trazado/30 px-2 py-0.5 hover:text-menta hover:border-menta/40 transition-colors"
+                className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5 hover:text-menta hover:border-menta/40 transition-colors"
               >
                 [ EDITAR ]
               </button>
               <button
                 onClick={handleThreadDelete}
                 disabled={threadActionLoading}
-                className="text-[10px] font-plex-mono text-gris-neutro/50 border border-gris-trazado/30 px-2 py-0.5 hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-30"
+                className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5 hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-30"
               >
                 [ BORRAR ]
               </button>
@@ -1056,7 +1056,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
             </span>
           )}
           <span className="text-xs font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
-          <span className="text-xs font-plex-sans text-gris-neutro/40">{relativeTime(thread.created_at)}</span>
+          <span className="text-xs font-plex-sans text-gray-400">{relativeTime(thread.created_at)}</span>
         </div>
       </div>
 
@@ -1073,10 +1073,10 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       {/* Replies List */}
       <div className="flex flex-col mb-8">
         {repliesLoading ? (
-          <p className="text-xs font-plex-mono text-gris-neutro/40 text-center py-8">Cargando respuestas...</p>
+          <p className="text-xs font-plex-mono text-gray-400 text-center py-8">Cargando respuestas...</p>
         ) : replies.length === 0 ? (
-          <div className="border border-gris-trazado/20 border-dashed p-10 text-center">
-            <p className="text-xs font-plex-mono text-gris-neutro/40">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
+          <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-10 text-center">
+            <p className="text-xs font-plex-mono text-gray-400">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
           </div>
         ) : (
           replies.map((reply) => {
@@ -1088,7 +1088,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                 <div className="absolute left-0 top-0 bottom-0 w-px bg-gris-trazado/30" />
                 {/* Punto de conexión */}
                 <div className="absolute left-[-2px] top-5 w-[5px] h-[5px] bg-gris-trazado/50" />
-                <div className="bg-black/20 border-l-2 border-l-gris-trazado pl-4 py-3 my-2 hover:bg-black/30 transition-colors duration-200 backdrop-blur-sm">
+                <div className="bg-black/70 backdrop-blur-md border border-white/5 border-l-2 border-l-gris-trazado/60 rounded-lg pl-4 py-3 my-2 hover:bg-black/80 transition-colors duration-200">
                   <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gris-trazado/10">
                     {reply.author?.avatar_url ? (
                       <img src={reply.author.avatar_url} alt="" className="w-5 h-5 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
@@ -1098,20 +1098,20 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                       </span>
                     )}
                     <span className="text-xs font-plex-mono text-menta/70">{reply.author?.username ?? 'anon'}</span>
-                    <span className="text-[10px] font-plex-mono text-gris-neutro/30 tabular-nums">{relativeTime(reply.created_at)}</span>
+                    <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(reply.created_at)}</span>
                     {/* Botones de propiedad reply — visibles al hover del autor */}
                     {isReplyAuthor && !isEditing && (
                       <div className="flex items-center gap-1.5 ml-auto opacity-0 group-hover/reply:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleReplyEditStart(reply)}
-                          className="text-[9px] font-plex-mono text-gris-neutro/40 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-menta hover:border-menta/30 transition-colors"
+                          className="text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-menta hover:border-menta/30 transition-colors"
                         >
                           [ EDITAR ]
                         </button>
                         <button
                           onClick={() => handleReplyDelete(reply.id)}
                           disabled={replyActionLoading}
-                          className="text-[9px] font-plex-mono text-gris-neutro/40 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-30"
+                          className="text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-30"
                         >
                           [ BORRAR ]
                         </button>
@@ -1157,7 +1157,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
 
       {/* Reply form */}
       {session ? (
-        <form onSubmit={handleReplySubmit} className="border border-gris-trazado/30 p-5 bg-noche/60 backdrop-blur-sm mb-8">
+        <form onSubmit={handleReplySubmit} className="bg-black/70 backdrop-blur-md border border-white/5 rounded-xl p-5 mb-8">
           <p className="text-xs font-plex-mono text-menta/60 mb-3">// Responder en este hilo</p>
           <textarea
             value={replyContent}
@@ -1193,8 +1193,8 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
           </div>
         </form>
       ) : (
-        <div className="border border-gris-trazado/30 border-dashed p-5 bg-noche/40 mb-8 text-center">
-          <p className="text-xs font-plex-mono text-gris-neutro/40">Inicia sesión para responder en este hilo.</p>
+        <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-5 mb-8 text-center">
+          <p className="text-xs font-plex-mono text-gray-400">Inicia sesión para responder en este hilo.</p>
         </div>
       )}
     </div>
