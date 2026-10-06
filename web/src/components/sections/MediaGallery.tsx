@@ -5,7 +5,6 @@ import PunkCanvasPlayer from '@/components/ui/PunkCanvasPlayer';
 import {
   DEMO_CATEGORIES,
   DEMO_RECORDS,
-  LIVE_METRICS,
   type DemoCategory,
 } from '@/lib/luxsyncContent';
 
@@ -19,7 +18,7 @@ export default function MediaGallery() {
   const demo = visibleDemos[Math.min(activeDemoIndex, Math.max(0, visibleDemos.length - 1))];
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto px-6 py-10">
+    <div className="w-full max-w-6xl mx-auto px-6 py-10">
       {/* ── HEADER ── */}
       <div className="mb-10 text-center">
         <p className="text-xs font-plex-mono text-menta/60 tracking-[0.3em] uppercase mb-3">
@@ -34,10 +33,8 @@ export default function MediaGallery() {
         </p>
       </div>
 
-      {/* ── PLAYER + METRICS ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT: Player + tabs + playlist */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+      {/* ── PLAYER + PLAYLIST ── */}
+      <div className="flex flex-col gap-4">
           <div className="border border-menta/20 bg-noche rounded-xl overflow-hidden min-h-[420px] relative">
             {!isVideoPlaying ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[420px] group">
@@ -130,21 +127,14 @@ export default function MediaGallery() {
             })}
           </div>
 
-          {/* Demo slider */}
-          <div
-            className="overflow-x-auto pb-1"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            <style>{`.demo-slider::-webkit-scrollbar{display:none}`}</style>
-            <div
-              className="demo-slider flex gap-2"
-              style={{ scrollSnapType: 'x mandatory' }}
-            >
-              {visibleDemos.length === 0 && (
-                <p className="font-plex-mono text-[10px] text-gris-neutro/50 tracking-[0.25em] uppercase px-4 py-3">
-                  [ No demos in this category yet ]
-                </p>
-              )}
+          {/* Demo grid — glassmorphism cards en grid flexible */}
+          {visibleDemos.length === 0 ? (
+            <p className="font-plex-mono text-[10px] text-gris-neutro/50 tracking-[0.25em] uppercase px-4 py-6 text-center
+              bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg">
+              [ No demos in this category yet ]
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {visibleDemos.map((demo, index) => (
                 <button
                   key={demo.id}
@@ -152,46 +142,32 @@ export default function MediaGallery() {
                     setActiveDemoIndex(index);
                     setIsVideoPlaying(false);
                   }}
-                  style={{ scrollSnapAlign: 'start' }}
-                  className={`flex-shrink-0 text-left px-4 py-3 rounded-lg border transition-all duration-200 w-[160px]
+                  className={`text-left px-5 py-4 rounded-lg border transition-all duration-200 cursor-pointer
+                    bg-black/40 backdrop-blur-sm hover:bg-black/60
                     ${
                       activeDemoIndex === index
-                        ? 'border-menta bg-menta/10 text-menta shadow-[0_0_12px_rgba(0,242,169,0.15)]'
-                        : 'border-gris-trazado/50 bg-noche/40 text-gris-neutro hover:border-menta/40 hover:text-hueso'
+                        ? 'border-menta/70 text-menta shadow-[0_0_16px_rgba(0,242,169,0.2)]'
+                        : 'border-white/10 text-gris-neutro hover:border-menta/40 hover:text-hueso'
                     }`}
                 >
                   <p className="text-[9px] font-plex-mono uppercase tracking-widest mb-1 opacity-50">
-                    {index + 1 < 10 ? `0${index + 1}` : index + 1}
+                    {index + 1 < 10 ? `0${index + 1}` : index + 1} · {demo.category}
                   </p>
-                  <p className="text-xs font-plex-mono font-bold leading-tight truncate">
+                  <p className="text-sm font-plex-mono font-bold leading-tight">
                     {demo.title}
                   </p>
+                  <p className="text-[11px] font-plex-sans text-gris-neutro/70 mt-1 leading-snug line-clamp-2">
+                    {demo.desc}
+                  </p>
                   {(demo.videoUrl || demo.youtubeId) && (
-                    <span className="inline-block mt-1 text-[8px] font-plex-mono text-menta/50 tracking-widest uppercase">
+                    <span className="inline-block mt-2 text-[8px] font-plex-mono text-menta/60 tracking-widest uppercase">
                       ● READY
                     </span>
                   )}
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* RIGHT: Live Metrics */}
-        <div className="flex flex-col gap-4 justify-between">
-          {LIVE_METRICS.map((stat) => (
-            <div
-              key={stat.label}
-              className="border border-gris-trazado rounded-lg p-4 bg-noche/40 backdrop-blur-sm hover:border-menta/40 transition-colors"
-            >
-              <p className="text-xs font-plex-mono text-gris-neutro mb-1 uppercase tracking-wider">
-                {stat.label}
-              </p>
-              <p className="text-2xl font-plex-mono font-bold text-hueso">{stat.value}</p>
-              <p className="text-xs font-plex-sans text-menta/60">{stat.sub}</p>
-            </div>
-          ))}
-        </div>
+          )}
       </div>
     </div>
   );
