@@ -19,6 +19,8 @@ export type WhitepaperCategory =
   | 'Editor'
   | 'Sensory'
   | 'Infrastructure'
+  | 'Networking'
+  | 'Video Engine'
   | 'Architecture';
 
 export const WHITEPAPERS: Whitepaper[] = [
@@ -154,6 +156,26 @@ export const WHITEPAPERS: Whitepaper[] = [
     date: '2026-08',
   },
 
+  // ── Networking ──
+  {
+    slug: 'ASTERIA_PIXELMAP_DUE_DILIGENCE',
+    title: 'Asteria V1 – Architectural Blueprint & DMX Engine',
+    category: 'Networking',
+    summary:
+      'Pixel-map tactical canvas, fieldEngine and the AsteriaCompiler — the spatial .lfx emission pipeline that feeds Hephaestus.',
+    date: '2026-10',
+  },
+
+  // ── Video Engine ──
+  {
+    slug: 'THEIA2_DUE_DILIGENCE',
+    title: 'Theia 2.0 – Technical Due Diligence & Video Architecture',
+    category: 'Video Engine',
+    summary:
+      'Acquisition audit of the Theia shader engine: SDF slice compositor, Mode-B telemetry distribution and light/video FX parity.',
+    date: '2026-10',
+  },
+
   // ── Architecture ──
   {
     slug: 'AETHER_MATRIX_AUDIT_PT1_REVISED',
@@ -188,5 +210,7 @@ export const WHITEPAPER_CATEGORIES: WhitepaperCategory[] = [
   'Editor',
   'Sensory',
   'Infrastructure',
+  'Networking',
+  'Video Engine',
   'Architecture',
 ];

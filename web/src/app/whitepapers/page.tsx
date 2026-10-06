@@ -5,7 +5,7 @@ import { WHITEPAPERS, WHITEPAPER_CATEGORIES, type WhitepaperCategory } from '@/l
 export const metadata = {
   title: 'Technical Due Diligence — LuxSync',
   description:
-    '18 auditable engineering documents covering the LuxSync photonic control ecosystem. Cognition, physics, timecoder, editor, sensory and infrastructure subsystems.',
+    '20 auditable engineering documents covering the LuxSync photonic control ecosystem. Cognition, physics, timecoder, editor, sensory, networking and video subsystems.',
 };
 
 export default function WhitepapersIndexPage() {
@@ -33,11 +33,17 @@ export default function WhitepapersIndexPage() {
           if (papers.length === 0) return null;
           return (
             <div key={category} className="mb-10">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-1.5 h-5 bg-menta"></span>
-                <h2 className="text-lg font-plex-mono font-bold text-hueso">{category}</h2>
-                <span className="text-[10px] font-plex-mono text-gris-neutro/50 tabular-nums">
-                  [{papers.length}]
+              <div className="flex items-center gap-3 mb-5 border-b border-gris-trazado/40 pb-3">
+                <span className="w-1 h-6 bg-menta shadow-[0_0_8px_rgba(0,242,169,0.6)]"></span>
+                <h2 className="text-xl lg:text-2xl font-plex-mono font-bold text-hueso uppercase tracking-[0.2em]">
+                  {category}
+                </h2>
+                <span className="text-[10px] font-plex-mono text-menta/60 tabular-nums tracking-widest">
+                  [{papers.length} {papers.length === 1 ? 'DOC' : 'DOCS'}]
+                </span>
+                <span className="flex-1" />
+                <span className="hidden md:inline text-[9px] font-plex-mono text-gris-neutro/30 uppercase tracking-[0.3em]">
+                  // subsystem
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

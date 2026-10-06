@@ -6,12 +6,21 @@ import { motion } from 'framer-motion';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PunkCanvasPlayer from '@/components/ui/PunkCanvasPlayer';
-import { DEMO_RECORDS, LIVE_METRICS } from '@/lib/luxsyncContent';
+import {
+  DEMO_CATEGORIES,
+  DEMO_RECORDS,
+  LIVE_METRICS,
+  type DemoCategory,
+} from '@/lib/luxsyncContent';
 
 export default function Home() {
+  const [activeCategory, setActiveCategory] = useState<DemoCategory>('Technical Demos');
   const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<'canvas' | 'youtube'>('canvas');
+
+  const visibleDemos = DEMO_RECORDS.filter((d) => d.category === activeCategory);
+  const demo = visibleDemos[Math.min(activeDemoIndex, Math.max(0, visibleDemos.length - 1))];
 
   return (
     <div className="relative grid h-screen grid-rows-[auto_1fr_auto] text-hueso overflow-hidden">
@@ -77,7 +86,7 @@ export default function Home() {
                       <div className="absolute inset-0 bg-gradient-to-t from-noche to-transparent opacity-60 pointer-events-none" />
                       <button
                         onClick={() => {
-                          const demo = DEMO_RECORDS[activeDemoIndex];
+                          if (!demo) return;
                           if (demo.videoUrl) {
                             setPlayerMode('canvas');
                             setIsVideoPlaying(true);
@@ -95,24 +104,23 @@ export default function Home() {
                         ▶
                       </button>
                       <p className="font-plex-mono text-hueso text-base z-10 mt-4 tracking-widest">
-                        {DEMO_RECORDS[activeDemoIndex].title}
+                        {demo?.title ?? ''}
                       </p>
                       <p className="font-plex-sans text-menta/60 text-xs z-10 max-w-xs text-center mt-1">
-                        {(DEMO_RECORDS[activeDemoIndex].videoUrl ||
-                          DEMO_RECORDS[activeDemoIndex].youtubeId)
-                          ? DEMO_RECORDS[activeDemoIndex].desc
+                        {demo && (demo.videoUrl || demo.youtubeId)
+                          ? demo.desc
                           : 'Coming soon — scenario in preparation'}
                       </p>
                     </div>
-                  ) : playerMode === 'canvas' && DEMO_RECORDS[activeDemoIndex].videoUrl ? (
+                  ) : playerMode === 'canvas' && demo?.videoUrl ? (
                     <div className="w-full h-[360px]">
                       <PunkCanvasPlayer
-                        src={DEMO_RECORDS[activeDemoIndex].videoUrl}
-                        title={DEMO_RECORDS[activeDemoIndex].title}
+                        src={demo.videoUrl}
+                        title={demo.title}
                         onClose={() => setIsVideoPlaying(false)}
                       />
                     </div>
-                  ) : playerMode === 'youtube' && DEMO_RECORDS[activeDemoIndex].youtubeId ? (
+                  ) : playerMode === 'youtube' && demo?.youtubeId ? (
                     <div className="relative w-full h-[360px] bg-black">
                       <button
                         onClick={() => setIsVideoPlaying(false)}
@@ -126,13 +134,42 @@ export default function Home() {
                       </button>
                       <iframe
                         className="w-full h-full border-none outline-none"
-                        src={`https://www.youtube.com/embed/${DEMO_RECORDS[activeDemoIndex].youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`}
-                        title={DEMO_RECORDS[activeDemoIndex].title}
+                        src={`https://www.youtube.com/embed/${demo.youtubeId}?autoplay=1&controls=1&rel=0&modestbranding=1&playsinline=1`}
+                        title={demo.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
                       />
                     </div>
                   ) : null}
+                </div>
+
+                {/* Category tabs — filtran la playlist del reproductor */}
+                <div className="flex gap-1 border border-gris-trazado/40 rounded-lg p-1 bg-noche/40">
+                  {DEMO_CATEGORIES.map((cat) => {
+                    const count = DEMO_RECORDS.filter((d) => d.category === cat).length;
+                    const active = activeCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setActiveCategory(cat);
+                          setActiveDemoIndex(0);
+                          setIsVideoPlaying(false);
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-md font-plex-mono text-[10px] uppercase tracking-widest transition-all duration-200 cursor-pointer
+                          ${
+                            active
+                              ? 'bg-menta/15 text-menta border border-menta/40 shadow-[0_0_10px_rgba(0,242,169,0.15)]'
+                              : 'text-gris-neutro border border-transparent hover:text-hueso hover:border-gris-trazado/50'
+                          }`}
+                      >
+                        {cat}
+                        <span className={`ml-1.5 tabular-nums ${active ? 'text-menta/60' : 'text-gris-neutro/40'}`}>
+                          [{count}]
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Demo slider */}
@@ -145,7 +182,12 @@ export default function Home() {
                     className="demo-slider flex gap-2"
                     style={{ scrollSnapType: 'x mandatory' }}
                   >
-                    {DEMO_RECORDS.map((demo, index) => (
+                    {visibleDemos.length === 0 && (
+                      <p className="font-plex-mono text-[10px] text-gris-neutro/50 tracking-[0.25em] uppercase px-4 py-3">
+                        [ No demos in this category yet ]
+                      </p>
+                    )}
+                    {visibleDemos.map((demo, index) => (
                       <button
                         key={demo.id}
                         onClick={() => {
