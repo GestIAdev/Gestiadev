@@ -60,15 +60,30 @@ const SLUG_ICON_MAP: Record<string, CategoryIcon> = {
   'showcases-setups': 'monitor',
 };
 
+// Override de display EN para categorías que vienen en ES desde la DB
+const CATEGORY_LABELS: Record<string, { name: string; description: string }> = {
+  'anuncios-oficiales': {
+    name: 'Official Announcements',
+    description: 'Official communications from the LuxSync team.',
+  },
+  'soporte-tecnico': {
+    name: 'Technical Support',
+    description: 'Bug reports, troubleshooting, and architectural discussions.',
+  },
+};
+
+const catName = (cat: { slug: string; name: string }) => CATEGORY_LABELS[cat.slug]?.name ?? cat.name;
+const catDesc = (cat: DbCategory) => CATEGORY_LABELS[cat.slug]?.description ?? cat.description;
+
 // Helper: timestamp ISO → texto relativo legible
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Ahora mismo';
-  if (m < 60) return `Hace ${m}min`;
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `Hace ${h}h`;
-  return `Hace ${Math.floor(h / 24)}d`;
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 // ============================================================
@@ -240,7 +255,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
   const renderLoading = () => (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
       <p className="text-sm font-plex-mono text-menta animate-pulse tracking-[0.2em]">
-        [ CARGANDO DATOS DE LA RED NEURAL... ]
+        [ LOADING NEURAL NETWORK DATA... ]
       </p>
       <div className="flex gap-1.5">
         {[0, 1, 2].map((i) => (
@@ -307,10 +322,10 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors">{cat.name}</p>
+                    <p className="text-sm font-plex-mono font-bold text-hueso group-hover:text-menta transition-colors">{catName(cat)}</p>
                     <span className="text-[10px] font-plex-mono text-gray-400 group-hover:text-menta/60 transition-colors tabular-nums">[{catThreadCount}]</span>
                   </div>
-                  <p className="text-xs font-plex-sans text-gray-300 leading-relaxed">{cat.description}</p>
+                  <p className="text-xs font-plex-sans text-gray-300 leading-relaxed">{catDesc(cat)}</p>
                 </div>
               </div>
             </button>
@@ -320,11 +335,11 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
 
       {/* HILOS RECIENTES */}
       <h2 className="text-lg font-plex-mono font-bold text-hueso mb-4 flex items-center gap-3">
-        <span className="w-1.5 h-5 bg-menta"></span> Hilos Recientes
+        <span className="w-1.5 h-5 bg-menta"></span> Recent Threads
       </h2>
       {threads.length === 0 ? (
         <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-12 text-center mb-10">
-          <p className="text-sm font-plex-mono text-gray-400">Aún no hay hilos. ¡Sé el primero en publicar!</p>
+          <p className="text-sm font-plex-mono text-gray-400">No threads yet. Be the first to post!</p>
         </div>
       ) : (
         <div className="flex flex-col mb-10 bg-black/70 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden">
@@ -343,7 +358,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                     <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
                   )}
                   {thread.category && (
-                    <span className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5">{thread.category.name}</span>
+                    <span className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5">{catName(thread.category)}</span>
                   )}
                 </div>
               )}
@@ -361,7 +376,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                   )}
                   <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
                 </div>
-                <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} resp.</span>
+                <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} replies</span>
                 <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
               </div>
             </button>
@@ -386,7 +401,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
       <div className="flex flex-col sm:flex-row items-start justify-between mb-10 gap-4 p-6 rounded-xl bg-black/60 backdrop-blur-md border border-white/5">
         <div>
           <p className="text-[10px] font-plex-mono text-menta/60 tracking-[0.3em] uppercase mb-2">
-            // WAVE 2503 · Foro Nativo
+            // WAVE 2503 · Native Forum
           </p>
           <h1 className="text-3xl lg:text-4xl font-plex-mono font-bold text-hueso tracking-tight">
             Developer <span className="text-menta">Hub</span>
@@ -404,7 +419,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                   type="button"
                   onClick={() => { setEditProfileUsername(profile.username ?? ''); setEditProfileError(null); setIsEditingProfile(true); }}
                   className="flex items-center gap-2.5 border border-menta/20 bg-noche/60 backdrop-blur-sm px-2.5 py-1.5 hover:ring-1 hover:ring-menta/50 transition-all cursor-pointer"
-                  title="Editar perfil"
+                  title="Edit profile"
                 >
                   {/* Avatar cuadrado — sin border-radius, estética terminal */}
                   <div
@@ -437,16 +452,16 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-2 bg-transparent border border-menta text-menta font-plex-mono text-xs px-4 py-2.5 rounded-md hover:bg-menta/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all"
               >
-                + Nuevo Hilo
+                + New Thread
               </button>
 
               {/* Logout */}
               <button
                 onClick={() => supabase.auth.signOut()}
                 className="text-[10px] font-plex-mono text-gray-400 hover:text-red-400 transition-colors"
-                title="Cerrar sesión"
+                title="Sign out"
               >
-                ↙ OUT
+                ↙ SIGN OUT
               </button>
             </div>
           ) : (
@@ -457,7 +472,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                 onClick={() => { setShowAuthMenu(v => !v); setShowEmailInput(false); setMagicLinkSent(false); }}
                 className="flex items-center gap-2 bg-transparent border border-gris-neutro text-gris-neutro font-plex-mono text-xs px-4 py-2.5 rounded-md hover:border-menta hover:text-menta hover:shadow-[0_0_15px_rgba(0,229,255,0.15)] transition-all"
               >
-                ↗ Identificarse
+                ↗ Sign In
               </button>
 
               {/* Menú desplegable retro-terminal — PORTALED */}
@@ -485,7 +500,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                         </svg>
-                        <span>Entrar con Google</span>
+                        <span>Sign in with Google</span>
                       </button>
 
                       {/* Discord */}
@@ -496,7 +511,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                         <svg className="w-4 h-4 flex-shrink-0 opacity-70 group-hover:opacity-100" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                         </svg>
-                        <span>Entrar con Discord</span>
+                        <span>Sign in with Discord</span>
                       </button>
 
                       {/* Separador */}
@@ -522,14 +537,14 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                     <div className="p-4 flex flex-col items-center gap-3 text-center">
                       <span className="text-menta text-lg">✓</span>
                       <p className="text-xs font-plex-mono text-menta leading-relaxed tracking-wide">
-                        [ ENLACE DE ACCESO<br/>ENVIADO AL CORREO ]
+                        [ ACCESS LINK<br/>SENT TO YOUR EMAIL ]
                       </p>
                       <p className="text-[10px] font-plex-sans text-gris-neutro">{magicLinkEmail}</p>
                       <button
                         onClick={() => { setShowAuthMenu(false); setShowEmailInput(false); setMagicLinkSent(false); setMagicLinkEmail(''); }}
                         className="text-[10px] font-plex-mono text-gris-neutro hover:text-hueso transition-colors mt-1"
                       >
-                        Cerrar
+                        Close
                       </button>
                     </div>
                   ) : (
@@ -562,7 +577,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                           onClick={() => setShowEmailInput(false)}
                           className="flex-1 text-[10px] font-plex-mono text-gris-neutro border border-gris-trazado/40 px-2 py-1.5 rounded hover:border-hueso hover:text-hueso transition-colors"
                         >
-                          ← Volver
+                          ← Back
                         </button>
                         <button
                           disabled={magicLinkLoading || !magicLinkEmail.trim()}
@@ -575,7 +590,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                           }}
                           className="flex-1 text-[10px] font-plex-mono text-noche bg-menta font-bold px-2 py-1.5 rounded hover:bg-menta/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {magicLinkLoading ? '...' : 'Enviar'}
+                          {magicLinkLoading ? '...' : 'Send'}
                         </button>
                       </div>
                     </div>
@@ -590,7 +605,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-menta opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-menta"></span>
             </span>
-            <span className="text-[11px] font-plex-mono text-menta">6 online</span>
+            <span className="text-[11px] font-plex-mono text-menta">System Operational</span>
           </div>
         </div>
       </div>
@@ -654,14 +669,14 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-sm font-plex-mono font-bold text-hueso flex items-center gap-2">
                   <span className="w-1 h-4 bg-menta inline-block" />
-                  Editar Alias
+                  Edit Alias
                 </h3>
                 <button onClick={() => setIsEditingProfile(false)} className="text-gris-neutro hover:text-hueso transition-colors text-lg leading-none">✕</button>
               </div>
               {profile?.avatar_url && (
                 <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gris-trazado/20">
                   <img src={profile.avatar_url} alt="" className="w-8 h-8 border border-gris-trazado/40 object-cover" referrerPolicy="no-referrer" />
-                  <span className="text-[10px] font-plex-mono text-gris-neutro/50">Avatar sincronizado desde OAuth</span>
+                  <span className="text-[10px] font-plex-mono text-gray-400">Avatar synced from OAuth</span>
                 </div>
               )}
               <form
@@ -669,11 +684,11 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                   e.preventDefault();
                   const clean = editProfileUsername.trim();
                   if (clean.length < 3 || clean.length > 24) {
-                    setEditProfileError('Entre 3 y 24 caracteres.');
+                    setEditProfileError('Between 3 and 24 characters.');
                     return;
                   }
                   if (!/^[a-zA-Z0-9_-]+$/.test(clean)) {
-                    setEditProfileError('Solo letras, números, _ y -');
+                    setEditProfileError('Letters, numbers, _ and - only');
                     return;
                   }
                   setEditProfileLoading(true);
@@ -683,14 +698,14 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                     setProfile((prev) => prev ? { ...prev, username: clean } : prev);
                     setIsEditingProfile(false);
                   } catch (err: any) {
-                    setEditProfileError(err.message ?? 'Error al guardar.');
+                    setEditProfileError(err.message ?? 'Failed to save.');
                   } finally {
                     setEditProfileLoading(false);
                   }
                 }}
               >
                 <label className="block text-[10px] font-plex-mono text-gris-neutro/60 uppercase tracking-wider mb-2">
-                  Nuevo Alias
+                  New Alias
                 </label>
                 <input
                   value={editProfileUsername}
@@ -708,14 +723,14 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                     disabled={editProfileLoading || !editProfileUsername.trim()}
                     className="flex-1 text-xs font-plex-mono text-noche bg-menta py-2 disabled:opacity-40 hover:bg-menta/90 transition-colors"
                   >
-                    {editProfileLoading ? '...' : '[ GUARDAR ]'}
+                    {editProfileLoading ? '...' : '[ SAVE ]'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsEditingProfile(false)}
                     className="text-xs font-plex-mono text-gris-neutro border border-gris-trazado/30 px-4 py-2 hover:text-hueso transition-colors"
                   >
-                    [ CANCELAR ]
+                    [ CANCEL ]
                   </button>
                 </div>
               </form>
@@ -763,25 +778,25 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
         Developer Hub
       </button>
       <span className="text-xs text-gris-neutro">/</span>
-      <span className="text-xs font-plex-mono text-hueso">{category.name}</span>
+      <span className="text-xs font-plex-mono text-hueso">{catName(category)}</span>
     </div>
 
     {/* Category Header */}
     <div className="flex items-center gap-3 mb-6">
       <span className="text-menta/70">{categoryIconMap[iconKey]}</span>
       <div>
-        <h2 className="text-xl font-plex-mono font-bold text-hueso">{category.name}</h2>
-        <p className="text-xs font-plex-sans text-gris-neutro">{category.description}</p>
+        <h2 className="text-xl font-plex-mono font-bold text-hueso">{catName(category)}</h2>
+        <p className="text-xs font-plex-sans text-gray-400">{catDesc(category)}</p>
       </div>
     </div>
 
     {/* Thread List */}
     {threads.length === 0 ? (
       <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-12 text-center">
-        <p className="text-sm font-plex-mono text-gray-400">No hay hilos en esta categoría todavía.</p>
+        <p className="text-sm font-plex-mono text-gray-400">No threads in this category yet.</p>
         {session && (
           <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
-            Sé el primero en publicar →
+            Be the first to post →
           </button>
         )}
       </div>
@@ -812,7 +827,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
                 )}
                 <span className="text-[11px] font-plex-mono text-menta/70">{thread.author?.username ?? 'anon'}</span>
               </div>
-              <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} resp.</span>
+              <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} replies</span>
               <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
             </div>
           </button>
@@ -824,7 +839,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
       onClick={onBack}
       className="text-xs font-plex-mono text-gris-neutro hover:text-menta transition-colors"
     >
-      ← Volver a secciones
+      ← Back to sections
     </button>
   </div>
   );
@@ -885,7 +900,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       const updated = await fetchReplies(thread.id);
       setReplies(updated);
     } catch (err: any) {
-      setReplyError(err.message ?? 'Error al enviar respuesta.');
+      setReplyError(err.message ?? 'Failed to send reply.');
     } finally {
       setReplySubmitting(false);
     }
@@ -905,7 +920,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       thread.content = editThreadContent.trim();
       setEditingThread(false);
     } catch (err: any) {
-      setThreadActionError(err.message ?? 'Error al guardar.');
+      setThreadActionError(err.message ?? 'Failed to save.');
     } finally {
       setThreadActionLoading(false);
     }
@@ -913,7 +928,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
 
   const handleThreadDelete = async () => {
     if (!session?.user?.id) return;
-    if (!window.confirm('¿Borrar este hilo permanentemente?')) return;
+    if (!window.confirm('Delete this thread permanently?')) return;
     setThreadActionLoading(true);
     setThreadActionError(null);
     try {
@@ -921,7 +936,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       setThreadDeleted(true);
       setTimeout(onBack, 800);
     } catch (err: any) {
-      setThreadActionError(err.message ?? 'Error al borrar.');
+      setThreadActionError(err.message ?? 'Failed to delete.');
       setThreadActionLoading(false);
     }
   };
@@ -942,7 +957,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       setReplies(prev => prev.map(r => r.id === replyId ? { ...r, content: editReplyContent.trim() } : r));
       setEditingReplyId(null);
     } catch (err: any) {
-      setReplyActionError(err.message ?? 'Error al guardar respuesta.');
+      setReplyActionError(err.message ?? 'Failed to save reply.');
     } finally {
       setReplyActionLoading(false);
     }
@@ -950,14 +965,14 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
 
   const handleReplyDelete = async (replyId: string) => {
     if (!session?.user?.id) return;
-    if (!window.confirm('¿Borrar esta respuesta?')) return;
+    if (!window.confirm('Delete this reply?')) return;
     setReplyActionLoading(true);
     setReplyActionError(null);
     try {
       await deleteReply(replyId, session.user.id);
       setReplies(prev => prev.filter(r => r.id !== replyId));
     } catch (err: any) {
-      setReplyActionError(err.message ?? 'Error al borrar respuesta.');
+      setReplyActionError(err.message ?? 'Failed to delete reply.');
     } finally {
       setReplyActionLoading(false);
     }
@@ -966,7 +981,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
   if (threadDeleted) {
     return (
       <div className="text-center py-12">
-        <p className="text-xs font-plex-mono text-menta/60">// Hilo eliminado. Redirigiendo...</p>
+        <p className="text-xs font-plex-mono text-menta/60">// Thread deleted. Redirecting...</p>
       </div>
     );
   }
@@ -976,7 +991,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6">
         <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
-          ← {thread.category?.name ?? 'Categoría'}
+          ← {thread.category ? catName(thread.category) : 'Category'}
         </button>
       </div>
 
@@ -993,14 +1008,14 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                 onClick={() => { setEditingThread(true); setThreadActionError(null); }}
                 className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5 hover:text-menta hover:border-menta/40 transition-colors"
               >
-                [ EDITAR ]
+                [ EDIT ]
               </button>
               <button
                 onClick={handleThreadDelete}
                 disabled={threadActionLoading}
                 className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5 hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-30"
               >
-                [ BORRAR ]
+                [ DELETE ]
               </button>
             </div>
           )}
@@ -1026,13 +1041,13 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                 disabled={threadActionLoading || !editThreadTitle.trim() || !editThreadContent.trim()}
                 className="text-[10px] font-plex-mono text-noche bg-menta px-4 py-1.5 disabled:opacity-40 hover:bg-menta/90 transition-colors"
               >
-                {threadActionLoading ? '...' : '[ GUARDAR ]'}
+                {threadActionLoading ? '...' : '[ SAVE ]'}
               </button>
               <button
                 onClick={() => { setEditingThread(false); setEditThreadTitle(thread.title); setEditThreadContent(thread.content); }}
                 className="text-[10px] font-plex-mono text-gris-neutro border border-gris-trazado/40 px-4 py-1.5 hover:text-hueso transition-colors"
               >
-                [ CANCELAR ]
+                [ CANCEL ]
               </button>
             </div>
           </>
@@ -1063,7 +1078,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       {/* Replies Header */}
       <h3 className="text-sm font-plex-mono font-bold text-hueso mb-4 flex items-center gap-2">
         <span className="w-1 h-4 bg-menta inline-block"></span>
-        {replies.length} Respuestas
+        {replies.length} Replies
       </h3>
 
       {replyActionError && (
@@ -1073,10 +1088,10 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       {/* Replies List */}
       <div className="flex flex-col mb-8">
         {repliesLoading ? (
-          <p className="text-xs font-plex-mono text-gray-400 text-center py-8">Cargando respuestas...</p>
+          <p className="text-xs font-plex-mono text-gray-400 text-center py-8">Loading replies...</p>
         ) : replies.length === 0 ? (
           <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-10 text-center">
-            <p className="text-xs font-plex-mono text-gray-400">No hay respuestas todavía.{session ? ' Sé el primero.' : ''}</p>
+            <p className="text-xs font-plex-mono text-gray-400">No replies yet.{session ? ' Be the first.' : ''}</p>
           </div>
         ) : (
           replies.map((reply) => {
@@ -1106,14 +1121,14 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                           onClick={() => handleReplyEditStart(reply)}
                           className="text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-menta hover:border-menta/30 transition-colors"
                         >
-                          [ EDITAR ]
+                          [ EDIT ]
                         </button>
                         <button
                           onClick={() => handleReplyDelete(reply.id)}
                           disabled={replyActionLoading}
                           className="text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-30"
                         >
-                          [ BORRAR ]
+                          [ DELETE ]
                         </button>
                       </div>
                     )}
@@ -1133,13 +1148,13 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
                           disabled={replyActionLoading || !editReplyContent.trim()}
                           className="text-[9px] font-plex-mono text-noche bg-menta px-3 py-1 disabled:opacity-40 hover:bg-menta/90 transition-colors"
                         >
-                          {replyActionLoading ? '...' : '[ GUARDAR ]'}
+                          {replyActionLoading ? '...' : '[ SAVE ]'}
                         </button>
                         <button
                           onClick={() => setEditingReplyId(null)}
                           className="text-[9px] font-plex-mono text-gris-neutro border border-gris-trazado/30 px-3 py-1 hover:text-hueso transition-colors"
                         >
-                          [ CANCELAR ]
+                          [ CANCEL ]
                         </button>
                       </div>
                     </>
@@ -1158,12 +1173,12 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
       {/* Reply form */}
       {session ? (
         <form onSubmit={handleReplySubmit} className="bg-black/70 backdrop-blur-md border border-white/5 rounded-xl p-5 mb-8">
-          <p className="text-xs font-plex-mono text-menta/60 mb-3">// Responder en este hilo</p>
+          <p className="text-xs font-plex-mono text-menta/60 mb-3">// Reply in this thread</p>
           <textarea
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             rows={4}
-            placeholder="Escribe tu respuesta... (pega un link de YouTube para embed automático)"
+            placeholder="Write your reply... (paste a YouTube link for auto-embed)"
             className="w-full bg-noche/80 border border-gris-trazado/30 px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/30 focus:outline-none focus:border-menta/50 resize-none mb-3"
           />
           {/* Placeholder Hephaestus — WAVE 2532 */}
@@ -1171,15 +1186,15 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
             <button
               type="button"
               disabled
-              title="Máx. 500KB · Formatos: .lfx · Disponible en WAVE 2532 (Módulo Hefesto)"
+              title="Max 500KB · Formats: .lfx · Available in WAVE 2532 (Hephaestus Module)"
               className="flex items-center gap-2 text-[9px] font-plex-mono text-gris-neutro/25 border border-gris-trazado/15 px-3 py-1.5 cursor-not-allowed select-none"
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
               </svg>
-              Adjuntar .LFX
+              Attach .LFX
             </button>
-            <span className="text-[9px] font-plex-mono text-gris-neutro/20">// WAVE 2532 — Módulo Hefesto · máx. 500KB</span>
+            <span className="text-[9px] font-plex-mono text-gris-neutro/20">// WAVE 2532 — Hephaestus Module · max 500KB</span>
           </div>
           {replyError && <p className="text-xs text-red-400 font-plex-mono mb-2">{replyError}</p>}
           <div className="flex justify-end">
@@ -1194,7 +1209,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
         </form>
       ) : (
         <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-5 mb-8 text-center">
-          <p className="text-xs font-plex-mono text-gray-400">Inicia sesión para responder en este hilo.</p>
+          <p className="text-xs font-plex-mono text-gray-400">Sign in to reply to this thread.</p>
         </div>
       )}
     </div>
@@ -1222,7 +1237,7 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
     e.preventDefault();
     if (!session?.user?.id) return;
     if (!categoryId || !title.trim() || !content.trim()) {
-      setError('Rellena todos los campos obligatorios.');
+      setError('Fill in all required fields.');
       return;
     }
     setIsSubmitting(true);
@@ -1236,7 +1251,7 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
       });
       onPublished();
     } catch (err: any) {
-      setError(err?.message ?? 'Error al publicar. Inténtalo de nuevo.');
+      setError(err?.message ?? 'Failed to publish. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -1260,7 +1275,7 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-plex-mono font-bold text-hueso flex items-center gap-2">
-          <span className="w-1.5 h-5 bg-menta"></span> Nuevo Hilo
+          <span className="w-1.5 h-5 bg-menta"></span> New Thread
         </h2>
         <button onClick={onClose} className="text-gris-neutro hover:text-hueso transition-colors text-lg leading-none">✕</button>
       </div>
@@ -1268,28 +1283,28 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
       <form onSubmit={handleSubmit}>
         {/* Categoría */}
         <div className="mb-4">
-          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Sección *</label>
+          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Section *</label>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             required
             className="w-full bg-noche border border-gris-trazado/50 rounded-lg px-4 py-3 text-sm font-plex-sans text-hueso focus:outline-none focus:border-menta/50 transition-colors"
           >
-            <option value="" disabled>Seleccionar sección...</option>
+            <option value="" disabled>Select a section...</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>{catName(cat)}</option>
             ))}
           </select>
         </div>
 
         {/* Título */}
         <div className="mb-4">
-          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Título del Hilo *</label>
+          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Thread Title *</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Escribe un título descriptivo..."
+            placeholder="Write a descriptive title..."
             maxLength={200}
             required
             className="w-full bg-noche border border-gris-trazado/50 rounded-lg px-4 py-3 text-sm font-plex-mono text-hueso placeholder:text-gris-neutro/40 focus:outline-none focus:border-menta/50 transition-colors"
@@ -1298,11 +1313,11 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
 
         {/* Contenido */}
         <div className="mb-4">
-          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Contenido *</label>
+          <label className="block text-[10px] font-plex-mono text-gris-neutro uppercase tracking-wider mb-2">Content *</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Describe tu tema, problema o comparte tu setup..."
+            placeholder="Describe your topic, issue, or share your setup..."
             rows={5}
             required
             className="w-full bg-noche border border-gris-trazado/50 rounded-lg px-4 py-3 text-sm font-plex-sans text-hueso placeholder:text-gris-neutro/40 focus:outline-none focus:border-menta/50 transition-colors resize-none"
@@ -1314,11 +1329,11 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
           <div className="flex items-center gap-3">
             <span className="text-yellow-500/70"><IconChip /></span>
             <div>
-              <p className="text-xs font-plex-mono text-yellow-500">Adjuntar archivo .lfx</p>
-              <p className="text-[10px] font-plex-sans text-gris-neutro/60">Solo efectos Hephaestus (.lfx) · Máx 500KB · Disponible en WAVE 2507</p>
+              <p className="text-xs font-plex-mono text-yellow-500">Attach .lfx file</p>
+              <p className="text-[10px] font-plex-sans text-gris-neutro/60">Hephaestus effects only (.lfx) · Max 500KB · Available in WAVE 2507</p>
             </div>
             <button type="button" disabled className="ml-auto text-xs font-plex-mono text-yellow-500/40 border border-yellow-500/20 px-3 py-1.5 rounded cursor-not-allowed">
-              Seleccionar
+              Browse
             </button>
           </div>
         </div>
@@ -1334,14 +1349,14 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
             onClick={onClose}
             className="text-xs font-plex-mono text-gris-neutro border border-gris-trazado px-4 py-2.5 rounded hover:border-hueso hover:text-hueso transition-colors"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !session}
             className="text-xs font-plex-mono text-noche bg-menta font-bold px-5 py-2.5 rounded hover:bg-menta/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Publicando...' : 'Publicar Hilo'}
+            {isSubmitting ? 'Publishing...' : 'Publish Thread'}
           </button>
         </div>
       </form>
@@ -1369,11 +1384,11 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
     const clean = username.trim();
 
     if (clean.length < 3 || clean.length > 24) {
-      setError('El alias debe tener entre 3 y 24 caracteres.');
+      setError('Alias must be between 3 and 24 characters.');
       return;
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(clean)) {
-      setError('Solo letras, números, guiones y underscores.');
+      setError('Letters, numbers, dashes and underscores only.');
       return;
     }
 
@@ -1389,7 +1404,7 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
         .maybeSingle();
 
       if (existing) {
-        setError('Ese alias ya está en uso. Elige otro.');
+        setError('That alias is already taken. Pick another.');
         setChecking(false);
         return;
       }
@@ -1397,7 +1412,7 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
       await updateProfile(userId, { username: clean });
       onComplete(clean);
     } catch {
-      setError('Error al guardar. Inténtalo de nuevo.');
+      setError('Failed to save. Please try again.');
     } finally {
       setChecking(false);
     }
@@ -1419,10 +1434,10 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
         className="w-full max-w-md border border-menta/30 bg-noche p-8 shadow-[0_0_60px_rgba(0,242,169,0.07)]"
       >
         <p className="text-[10px] font-plex-mono text-menta/60 tracking-[0.3em] mb-4">
-          // PROTOCOLO DE IDENTIFICACIÓN
+          // IDENTIFICATION PROTOCOL
         </p>
         <h2 className="text-xl font-plex-mono font-bold text-hueso mb-2">
-          Elige tu <span className="text-menta">alias</span>
+          Choose your <span className="text-menta">alias</span>
         </h2>
         <p className="text-xs font-plex-sans text-gris-neutro mb-6 leading-relaxed">
           This will be your identifier in the Developer Hub. You can change it later.
@@ -1455,7 +1470,7 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
             disabled={checking || !username.trim()}
             className="w-full text-xs font-plex-mono text-noche bg-menta font-bold py-3 hover:bg-menta/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {checking ? '[ VERIFICANDO... ]' : '[ CONFIRMAR ALIAS ]'}
+            {checking ? '[ CHECKING... ]' : '[ CONFIRM ALIAS ]'}
           </button>
         </form>
       </motion.div>
