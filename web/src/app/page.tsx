@@ -23,22 +23,26 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            {/* Logo */}
-            <img
-              src="/luxsync/interpreted_vector_logo.png"
-              alt="LuxSync Core"
-              width={384}
-              height={384}
-              className="w-56 md:w-72 lg:w-80 mb-6 rounded-full shadow-[0_0_40px_rgba(0,242,169,0.15)] mx-auto object-contain"
-            />
-
-            <h1 className="text-3xl md:text-5xl font-plex-mono font-bold text-hueso mb-4">
-              LuxSync — Photonic Control Ecosystem
-            </h1>
+            {/* Logo — isotipo + wordmark CSS */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
+              <img
+                src="/luxsync/interpreted_vector_logo.png"
+                alt="LuxSync"
+                className="w-32 h-32 md:w-40 md:h-40 mix-blend-screen opacity-90"
+              />
+              <div className="flex flex-col items-center md:items-start">
+                <h1 className="text-5xl md:text-7xl font-black text-[#1FE0D6] tracking-[0.2em] drop-shadow-[0_0_15px_rgba(31,224,214,0.5)] uppercase">
+                  LuxSync
+                </h1>
+                <span className="text-sm md:text-base text-gray-400 tracking-[0.3em] uppercase mt-2">
+                  Photonic Control Ecosystem
+                </span>
+              </div>
+            </div>
 
             <p className="text-base md:text-lg text-gris-neutro max-w-2xl mx-auto mb-8 font-plex-sans">
-              Fluid physics, Radix-2 synchronization and the first cognitive DMX engine. Enterprise-grade
-              photonic control with zero external dependencies.
+              El primer ecosistema que fusiona renderizado de vídeo generativo (GLSL) y control DMX bajo
+              un mismo cerebro neuronal. Latencia cero. Paridad fotón a fotón. Cero dependencias externas.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
