@@ -1,6 +1,11 @@
 # Root .gitignore for GestIAdev
 # Ignore markdown docs (internal planning, not for repo)
 *.md
+# …EXCEPT the whitepaper corpus — it IS site content served from
+# /public/whitepapers/*.md (the [slug] page fetches it client-side).
+# Without this negation the static export 404s in production.
+!web/public/whitepapers/
+!web/public/whitepapers/*.md
 docs/
 *.html
 
