@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Session } from '@supabase/supabase-js';
+import Link from 'next/link';
 import { supabase, fetchCategories, fetchThreads, insertThread, fetchReplies, insertReply, fetchProfile, updateProfile, updateThread, deleteThread, updateReply, deleteReply } from '@/lib/supabaseClient';
 import type { DbCategory, DbThread, DbReply, DbProfile } from '@/lib/supabaseClient';
-import type { View } from '@/app/page';
 
 // ============================================================
 // ICONOS SVG INLINE (Retro-Terminal, strokeWidth 1.5)
@@ -122,15 +122,13 @@ function parseTextWithMedia(content: string): React.ReactNode[] {
 }
 
 // ============================================================
-// SUBVISTAS DEL CÓNCLAVE
+// SUBVIEWS — Developer Hub
 // ============================================================
 type ConclaveView = 'index' | 'category' | 'thread';
 
-interface ConclaveIndexProps {
-  setActiveView: (view: View) => void;
-}
+interface ConclaveIndexProps {}
 
-const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
+const ConclaveIndex = ({}: ConclaveIndexProps) => {
   const [conclaveView, setConclaveView] = useState<ConclaveView>('index');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedThread, setSelectedThread] = useState<LiveThread | null>(null);
@@ -162,7 +160,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
       setCategories(cats);
       setThreads(thrs);
     } catch (err) {
-      console.error('[Cónclave] Error cargando datos:', err);
+      console.error('[Developer Hub] Error loading data:', err);
     } finally {
       setIsLoading(false);
     }
@@ -289,7 +287,7 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
     <>
       {/* CATEGORÍAS */}
       <h2 className="text-lg font-plex-mono font-bold text-hueso mb-4 flex items-center gap-3">
-        <span className="w-1.5 h-5 bg-menta"></span> Secciones del Cónclave
+        <span className="w-1.5 h-5 bg-menta"></span> Hub Sections
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
         {categories.map((cat) => {
@@ -391,10 +389,10 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
             // WAVE 2503 · Foro Nativo
           </p>
           <h1 className="text-3xl lg:text-4xl font-plex-mono font-bold text-hueso tracking-tight">
-            EL <span className="text-menta">CÓNCLAVE</span>
+            Developer <span className="text-menta">Hub</span>
           </h1>
           <p className="mt-2 text-sm font-plex-sans text-gris-neutro max-w-lg leading-relaxed">
-            Foro de soporte, discusión comunitaria y librería pública de fixtures <span className="text-yellow-500">.lfx</span> para LuxSync Commander.
+            Support, community discussion and public fixture library <span className="text-yellow-500">.lfx</span> for LuxSync Commander.
           </p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -727,12 +725,12 @@ const ConclaveIndex = ({ setActiveView }: ConclaveIndexProps) => {
       </AnimatePresence>
 
       {/* RETORNO */}
-      <button
-        onClick={() => setActiveView('hero')}
-        className="border border-gris-trazado text-gris-neutro px-5 py-2 font-plex-mono text-sm hover:border-menta hover:text-menta transition-colors duration-200"
+      <Link
+        href="/"
+        className="inline-block border border-gris-trazado text-gris-neutro px-5 py-2 font-plex-mono text-sm hover:border-menta hover:text-menta transition-colors duration-200"
       >
-        ← RETORNAR AL INICIO
-      </button>
+        ← Back to LuxSync
+      </Link>
     </motion.section>
   );
 };
@@ -762,7 +760,7 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
     {/* Breadcrumb */}
     <div className="flex items-center gap-2 mb-6">
       <button onClick={onBack} className="text-xs font-plex-mono text-menta/70 hover:text-menta transition-colors">
-        El Cónclave
+        Developer Hub
       </button>
       <span className="text-xs text-gris-neutro">/</span>
       <span className="text-xs font-plex-mono text-hueso">{category.name}</span>
@@ -1427,7 +1425,7 @@ const OnboardingModal = ({ userId, onComplete, onClose }: OnboardingModalProps) 
           Elige tu <span className="text-menta">alias</span>
         </h2>
         <p className="text-xs font-plex-sans text-gris-neutro mb-6 leading-relaxed">
-          Este será tu identificador en El Cónclave. Podrás cambiarlo más adelante.
+          This will be your identifier in the Developer Hub. You can change it later.
         </p>
 
         <form onSubmit={handleSubmit}>

@@ -1,45 +1,58 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// import Starfield from "@/components/ui/Starfield"; // Desactivado temporalmente
+import StarfieldSwitcher from "@/components/ui/StarfieldSwitcher";
 
 export const metadata: Metadata = {
-  title: "GestIAdev - Forjamos el Futuro del Software",
-  description: "Empresa especializada en desarrollo de software, consultoría tecnológica y transformación digital. Soluciones innovadoras para el futuro del software.",
-  keywords: ["desarrollo software", "consultoría tecnológica", "transformación digital", "Next.js", "React", "TypeScript", "cyberpunk", "tecnología"],
-  authors: [{ name: "GestIAdev Team" }],
-  creator: "GestIAdev",
-  publisher: "GestIAdev",
+  title: "LuxSync — Photonic Control Ecosystem",
+  description:
+    "LuxSync is a premium, enterprise-grade photonic control ecosystem. Fluid physics, Radix-2 synchronization and the first cognitive DMX engine. Zero external dependencies.",
+  keywords: [
+    "DMX lighting control",
+    "photonic control",
+    "LuxSync",
+    "Selene Lux IA",
+    "real-time DMX",
+    "lighting automation",
+    "Zero-Dependency",
+    "Electron",
+    "TypeScript",
+  ],
+  authors: [{ name: "LuxSync Engineering" }],
+  creator: "LuxSync",
+  publisher: "LuxSync",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://gestiadev.gestiadev.workers.dev"),
+  metadataBase: new URL("https://gestiadev.pages.dev"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "GestIAdev - Forjamos el Futuro del Software",
-    description: "Empresa especializada en desarrollo de software, consultoría tecnológica y transformación digital. Soluciones innovadoras para el futuro del software.",
-    url: "https://gestiadev.gestiadev.workers.dev",
-    siteName: "GestIAdev",
+    title: "LuxSync — Photonic Control Ecosystem",
+    description:
+      "Premium photonic control ecosystem. Fluid physics, Radix-2 synchronization and the first cognitive DMX engine. Zero external dependencies.",
+    url: "https://gestiadev.pages.dev",
+    siteName: "LuxSync",
     images: [
       {
-        url: "/robotopunk.png",
+        url: "/luxsync/interpreted_vector_logo.png",
         width: 1200,
         height: 630,
-        alt: "GestIAdev - Robot Punk Logo",
+        alt: "LuxSync — Photonic Control Ecosystem",
       },
     ],
-    locale: "es_ES",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "GestIAdev - Forjamos el Futuro del Software",
-    description: "Empresa especializada en desarrollo de software, consultoría tecnológica y transformación digital.",
-    images: ["/robotopunk.png"],
-    creator: "@gestiadev",
+    title: "LuxSync — Photonic Control Ecosystem",
+    description:
+      "Premium photonic control ecosystem. Fluid physics, Radix-2 synchronization and the first cognitive DMX engine.",
+    images: ["/luxsync/interpreted_vector_logo.png"],
+    creator: "@luxsync",
   },
   robots: {
     index: true,
@@ -52,9 +65,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "tu-codigo-de-verificacion-google",
-  },
 };
 
 export default function RootLayout({
@@ -65,7 +75,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-plex-sans antialiased">
-        {/* <Starfield /> */} {/* Desactivado temporalmente - starfield procedural original */}
+        {/* Global cyberpunk background — persists across all routes */}
+        <StarfieldSwitcher />
         {children}
       </body>
     </html>

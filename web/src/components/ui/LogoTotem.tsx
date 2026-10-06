@@ -9,9 +9,8 @@ interface LogoTotemProps {
 }
 
 /**
- * El Tótem del Cónclave (V4 - Crop Quirúrgico).
- * Plano del Arquitecto (Turno 154) fusionado con Props (Turno 155).
- * Creado por Gemini (Arquitecto) y Jennifer (Reina).
+ * LuxSync Totem logo (V4).
+ * Geometric SVG mark with neon accent colors.
  */
 const LogoTotem: React.FC<LogoTotemProps> = ({ className, onClick, ...props }) => {
   return (

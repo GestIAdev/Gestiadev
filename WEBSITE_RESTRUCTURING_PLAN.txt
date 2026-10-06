@@ -1,0 +1,324 @@
+# WEBSITE RESTRUCTURING PLAN — LUXSYNC PIVOT & RESTRUCTURING
+
+> **Role:** Principal UX/UI Architect & Frontend Tech Lead
+> **Context:** `gestiadev.pages.dev` is currently an agency portfolio ("PunkIAgest") that treats LuxSync as one project among many inside the "Armería" section. This document maps the existing architecture and proposes a full pivot to a **single-product flagship landing page for LuxSync**.
+> **Status:** PLANNING — No code has been written. This is the structural map + step-by-step execution proposal.
+
+---
+
+## 0. EXECUTIVE SUMMARY
+
+The current site is a **single-page state machine** (`web/src/app/page.tsx`) that swaps `<section>` components via a `useState<View>` router. There is no Next.js App Router multi-route structure — everything lives at `/`. The pivot requires migrating from this in-memory view-switcher to **real Next.js App Router routes** (`/`, `/community`, `/labs`, `/whitepapers`, `/contact`) so LuxSync owns `/` as a true landing page, while legacy projects and the forum are demoted to secondary routes.
+
+The cyberpunk aesthetic (halftone dot-matrix canvas, neon-cyan/magenta palette, glitch text, IBM Plex Mono) is centralized in `globals.css` + a handful of reusable UI components (`HalftoneGrid`, `StarfieldSwitcher`, `PunkCanvasPlayer`, `LogoTotem`, `LogoWordmark`). These are **globally route-agnostic** and will survive the migration untouched.
+
+---
+
+## 1. CURRENT ARCHITECTURE MAP
+
+### 1.1 Routing System
+
+| Layer | File | Mechanism |
+|---|---|---|
+| Framework | `web/next.config.js` | Next.js, `output: 'export'` (static export for Cloudflare Pages), `trailingSlash: true` |
+| Entry | `web/src/app/layout.tsx` | Root layout, imports `globals.css`, sets metadata |
+| Home | `web/src/app/page.tsx` | **Single route `/`** — a `'use client'` component holding a `useState<View>` switch |
+| Routing | `page.tsx` `renderView()` | `switch(activeView)` returns one `<section>` at a time inside `AnimatePresence` |
+
+**Key finding:** There is **only one URL** (`/`). All "pages" (Visión, Arsenal, Armería, Cónclave, Contacto, LuxSync, DentIAgest, and 6 Armería detail views + 6 Arsenal detail views) are virtual views toggled by state. This means:
+- No deep-linking (refreshing loses your view).
+- No SEO per section.
+- No browser back/forward.
+- The Cloudflare static export only ever emits `index.html`.
+
+### 1.2 Navigation Links (current)
+
+Located in `web/src/components/layout/Header.tsx` (lines 13-19):
+
+| Nav Label | View key | Component |
+|---|---|---|
+| Visión | `hero` | `Hero.tsx` |
+| Arsenal | `arsenal` | `Arsenal.tsx` (+ 6 `arsenal/*Detalle.tsx`) |
+| Armería | `armeria` | `Armeria.tsx` (+ 6 `armeria/*Card.tsx` + `*Detalle.tsx`) |
+| Cónclave | `conclave` | `ConclaveIndex.tsx` (Supabase-backed forum) |
+| Contacto | `contacto` | `Contacto.tsx` |
+
+Plus a right-side "flagship projects" cluster (Header lines 22-36): `DentIAgest` (`dentiagest`) and `LuxSync` (`luxsync`, with pulsing menta dot).
+
+The `View` union type (`page.tsx` lines 33-56) enumerates **23 virtual views**, including 6 Armería detail views and 6 Arsenal detail views.
+
+### 1.3 The Shell (`page.tsx` lines 151-171)
+
+A CSS grid `grid-rows-[auto_1fr_auto]` with:
+- Row 1: `<Header>` (sticky, `bg-noche/90 backdrop-blur-md`)
+- Row 2: `<main className="lienzo-principal">` (scrollable, hidden scrollbar via `.lienzo-principal` in `globals.css`)
+- Row 3: `<Footer>`
+- Background: `<StarfieldSwitcher />` at `z-[-10]` (global)
+
+A "RENDER SOBERANO" branch (lines 132-142) renders **fullscreen views** (Armería Belasco, Barchafy, DemoCyberpunkVet) without the Header/Footer shell.
+
+### 1.4 Section Inventory
+
+| Folder | Components | Purpose |
+|---|---|---|
+| `sections/` (root) | `Hero`, `Arsenal`, `Armeria`, `Fundador`, `Contacto`, `Alianzas`, `ConclaveIndex`, `LuxSyncSection`, `DentIAgestSection`, `HolopadLaReina` | Top-level views |
+| `sections/arsenal/` | `ArsenalApolloDetalle`, `ArsenalDigitalFortressDetalle`, `ArsenalIAPunkDetalle`, `ArsenalUXUIDetalle`, `ArsenalCustomToolsDetalle`, `ArsenalModularDetalle` | Agency capability detail views |
+| `sections/armeria/` | `BelascoCard`, `BarChafyCard`, `IAnarkalendarCard`, `ScherzoCard`, `MigracionCard`, `RedNomadaCard` + matching `*Detalle.tsx` + `DemoCyberpunkVet` | Legacy project cards & detail pages |
+| `ui/` | `PunkCanvasPlayer`, `HalftoneGrid`, `Starfield`, `StarfieldArtistic`, `StarfieldSwitcher`, `LogoTotem`, `LogoWordmark`, `TechCard`, `Lightbox`, `AuditModal` | Reusable UI primitives |
+| `lib/` | `supabaseClient.ts` | Supabase auth + forum CRUD (categories, threads, replies, profiles) |
+
+### 1.5 LuxSync's Current Position
+
+LuxSync is **buried two clicks deep**: `Hero` → `[ EXPLORAR ARMERÍA ]` → `Armeria` → LuxSync card → `LuxSyncSection`. It shares the Armería grid with DentIAgest (also elevated to "heavy weapon") and 6 minor demos. The `LuxSyncSection` itself is already a strong product page (video player, 4 live metric widgets, 8 audit modals, Founder Pack pricing tiers) — it just isn't the home page.
+
+---
+
+## 2. THE LUXSYNC PIVOT PLAN — NEW ROUTING ARCHITECTURE
+
+### 2.1 Target Route Map (Next.js App Router)
+
+Migrate from the single-state-machine to a real App Router tree under `web/src/app/`:
+
+```
+web/src/app/
+├── layout.tsx                  # KEEP — global shell, fonts, metadata (update metadata → LuxSync)
+├── globals.css                 # KEEP — cyberpunk theme (untouched)
+├── page.tsx                    # REWRITE → LuxSync flagship landing (was Hero+switcher)
+├── community/
+│   └── page.tsx                # NEW → Conclave (moved from view 'conclave')
+├── labs/
+│   ├── page.tsx                # NEW → Armería index (legacy projects grid)
+│   ├── belasco/page.tsx        # NEW → ArmeriaBelascoDetalle
+│   ├── barchafy/page.tsx       # NEW → ArmeriaBarchafyDetalle
+│   ├── ianarkalendar/page.tsx  # NEW → ArmeriaIAnarkalendarDetalle
+│   ├── scherzo/page.tsx        # NEW → ArmeriaScherzoDetalle
+│   ├── migracion/page.tsx      # NEW → ArmeriaMigracionDetalle
+│   ├── rednomada/page.tsx      # NEW → ArmeriaRedNomadaDetalle
+│   └── dentiagest/page.tsx     # NEW → DentIAgestSection (demoted from flagship)
+├── whitepapers/
+│   ├── page.tsx                # NEW → index of 18 technical due diligence docs
+│   └── [slug]/page.tsx         # NEW → individual whitepaper renderer
+└── contact/
+    └── page.tsx                # NEW → Contacto (moved from view 'contacto')
+```
+
+**Rationale for App Router over keeping the state machine:**
+- Static export (`output: 'export'`) already works with App Router — Cloudflare Pages will emit one `index.html` per route.
+- Deep-linking, SEO, and shareable URLs become possible (critical for investor/buyer due diligence links).
+- The `View` union type and the 23-case `renderView()` switch are deleted entirely.
+
+### 2.2 The New Home Page (`/`)
+
+The new `page.tsx` becomes a **scroll-based flagship landing** (not a view-switcher). It composes existing, proven components into a single narrative scroll:
+
+| Section | Source / Action | Content |
+|---|---|---|
+| 1. Hero | Rebuild from `Hero.tsx` + `LuxSyncSection` hero card | LuxSync logo (`/luxsync/interpreted_vector_logo.png`), headline, `[ RECLAMAR BETA ]` CTA, live "Beta Activa" badge |
+| 2. Showcase Player | **Promote `PunkCanvasPlayer`** + `DEMO_RECORDS` playlist from `LuxSyncSection` | The custom native video player as the primary media showcase, front and center |
+| 3. Live Metrics Widgets | Lift the 4 stat cards from `LuxSyncSection` (lines 266-278) | `0 Dependencies`, `512 DMX Channels`, `7.1 Físicas Reactivas`, `8/18 Auditorías` |
+| 4. Architecture Desclasificación | Lift the 8 audit cards from `LuxSyncSection` (lines 286-305) → **re-link to `/whitepapers`** instead of modals | Audit cards now deep-link to the new whitepapers section |
+| 5. Founder's Forge | Lift pricing block from `LuxSyncSection` (lines 308-348) | DJ Founder $150 / Full Suite $350 |
+| 6. Community Teaser | NEW compact block | "Soporte y librería .lfx en el Cónclave" → CTA to `/community` |
+| 7. Origins Teaser | NEW compact block | "Proyectos legacy del Cónclave" → CTA to `/labs` (discreet, footer-adjacent) |
+
+**Critical:** The Home page must NOT link to Arsenal (agency capabilities) — that section is retired in the pivot. The agency pitch is dead; LuxSync is the only product.
+
+### 2.3 Sidelining the "Armería" Legacy Projects → `/labs`
+
+**Strategy:** Move the entire `Armeria.tsx` grid + all `armeria/*Card.tsx` and `armeria/*Detalle.tsx` components under `/labs`. The route name `labs` (preferred over `origins`) signals "experimental/legacy work" without diluting the LuxSync pitch.
+
+- `/labs` renders the current `Armeria` grid (Belasco, BarChafy, IAnarkalendar, Scherzo, Migracion, RedNomada) **minus** the LuxSync and DentIAgest "heavy weapon" cards at the top (those two cards are removed from the grid; LuxSync is now Home, DentIAgest gets its own `/labs/dentiagest` page).
+- Each card's "ACCEDER" CTA changes from `setActiveView('armeria-belasco')` to `<Link href="/labs/belasco">`.
+- The fullscreen "RENDER SOBERANO" views (Belasco, Barchafy, DemoCyberpunkVet) become their own route layouts with a dedicated fullscreen template (no Header/Footer), reached via standard navigation.
+- The Header nav link "Armería" is **removed**; `/labs` is reachable only via the discreet Origins Teaser on Home and a footer link.
+
+### 2.4 Retiring "Arsenal" (Agency Capabilities)
+
+The 6 `arsenal/*Detalle.tsx` components (Apollo, DigitalFortress, IAPunk, UX/UI, CustomTools, Modular) and `Arsenal.tsx` are **agency-portfolio content** that contradicts the single-product pivot.
+
+**Recommendation:** Delete `Arsenal.tsx` and the `arsenal/` folder from the live site. If historical preservation is desired, archive them to a `/labs/arsenal` sub-route or a `legacy/` branch — but they must not appear in the primary navigation. The "Arsenal" nav link is removed from the Header.
+
+---
+
+## 3. COMPONENT RETENTION & REUSABILITY
+
+### 3.1 Cyberpunk Aesthetic — PRESERVE GLOBALLY
+
+These are **route-agnostic** and must be preserved unchanged across all new routes:
+
+| Asset | Location | Role |
+|---|---|---|
+| Theme tokens | `web/src/app/globals.css` `@theme` block (lines 9-23) | `--color-noche #0A0A1A`, `--color-menta #00F2A9`, `--color-fucsia-neon #E800E8`, `--color-verde-fosforo #39ff14`, IBM Plex Mono/Sans, Space Mono |
+| Body grid background | `globals.css` lines 26-34 | `radial-gradient` dot-matrix at 15px |
+| Glitch text engine | `globals.css` `.glitch-text` + `::before/::after` + `glitch-anim-1/2` + `glitch-skew` keyframes (lines 82-155) | RGB-split glitch on `data-text` elements |
+| Scrollbar styling | `globals.css` lines 41-70 + `.lienzo-principal` (lines 157-171) | Menta-on-hover scrollbars, hidden main scrollbar |
+| Halftone dot-matrix canvas | `web/src/components/ui/HalftoneGrid.tsx` (259 lines) | Animated distorted dot grid with cyberpunk particle glow — **the retro-cyberpunk halftone background** |
+| Starfield system | `Starfield.tsx`, `StarfieldArtistic.tsx`, `StarfieldSwitcher.tsx` | Global background at `z-[-10]` (currently mounted in `page.tsx`) |
+| Logo system | `LogoTotem.tsx`, `LogoWordmark.tsx` | Tótem (eye-cursor blink) + glitch wordmark |
+
+**Migration action:** `StarfieldSwitcher` currently lives inside `page.tsx`'s render. Move it into `layout.tsx` so it persists across all routes without remounting. `HalftoneGrid` is currently unused in the render tree (defined but not imported by `page.tsx`) — verify whether it should replace/complement `StarfieldSwitcher` globally, or remain available per-route.
+
+### 3.2 Custom Video Player — PROMOTE
+
+`web/src/components/ui/PunkCanvasPlayer.tsx` (526+ lines) is the **custom native video player**. It implements a Hardware Overlay Evasion Protocol (`<video hidden>` decodes → `<canvas>` paints via `ctx.drawImage` → `requestFullscreen` on the container div, not the video) to avoid Chromium iGPU crashes on NVIDIA Optimus laptops. Uses `requestVideoFrameCallback` with rAF fallback, integer-only letterboxing, glassmorphism controls, DMX-laser-glow seekbar.
+
+**Promotion plan:**
+- It is already self-contained (props: `src`, `title`, `onClose`) and used inline in `LuxSyncSection`.
+- On the new Home, place it as the **primary media showcase** in section 2, using the existing `DEMO_RECORDS` playlist (Omniliquid, Hyperion 3D, Selene, Hephaestus).
+- No code changes needed to the player itself — only its container/context changes (from a buried section to the home page hero zone).
+- Consider extracting `DEMO_RECORDS` and `AUDIT_DOCS` arrays out of `LuxSyncSection.tsx` into a shared `web/src/lib/luxsyncContent.ts` so both Home and `/whitepapers` can consume them.
+
+### 3.3 AuditModal — REPURPOSE FOR WHITEPAPERS
+
+`web/src/components/ui/AuditModal.tsx` currently fetches a single `.md` from Supabase and renders it in a portal modal. For the new `/whitepapers` section, this fetch-and-render logic should be extracted into a reusable markdown renderer component that works both as a modal (on Home's audit cards, optional) and as a full page (`/whitepapers/[slug]`).
+
+---
+
+## 4. THE "CÓNCLAVE" REFACTOR → `/community`
+
+### 4.1 Current State
+
+`ConclaveIndex.tsx` (450+ lines) is a full Supabase-backed forum with:
+- **Auth:** Supabase OAuth + magic links, profile onboarding, "Atrapasueños" token cleaner.
+- **Categories** (mapped via `SLUG_ICON_MAP`): `anuncios-oficiales` (megaphone), `soporte-tecnico` (wrench), `lfx-fixture-vault` (chip), `showcases-setups` (monitor).
+- **Threads & replies** with CRUD, pinning, YouTube embed parsing (`parseTextWithMedia`).
+- Sub-views: `index` → `category` → `thread` (internal state machine).
+
+It already explicitly serves "soporte, discusión comunitaria y librería pública de fixtures `.lfx` para LuxSync Commander" (line 397) — it is **already LuxSync-centric in purpose**, just poorly positioned in nav.
+
+### 4.2 Refactor Plan
+
+- **Route:** Move to `/community` (the directive suggests `/community` or `/conclave`; `/community` reads better for an external/investor audience while `/conclave` preserves brand lore — recommend `/community` as the URL with "Cónclave" as the displayed heading).
+- **Nav:** Replace the "Cónclave" link in Header with "Comunidad" → `/community`.
+- **Deep integration with LuxSync layout:** Add a "Community Teaser" section on the new Home (section 6) showing the 3 most recent threads + a "¿Problema con un fixture? Pídelo en el Cónclave" CTA. This requires a small server-side fetch of recent threads on the Home page (or a lightweight client component).
+- **Internal sub-view state machine:** The `index → category → thread` flow can either stay as in-component state (simplest) or be promoted to nested routes `/community/[category]` and `/community/[category]/[thread]`. Recommend **nested routes** for shareability of support threads and `.lfx` fixture requests — valuable for the community SEO.
+- **Supabase client** (`lib/supabaseClient.ts`) is route-agnostic and moves unchanged.
+
+---
+
+## 5. DUE DILIGENCE INTEGRATION — NEW `/whitepapers` SECTION
+
+### 5.1 The 18 Technical Due Diligence Markdown Files
+
+The corpus is currently **scattered across three locations**:
+
+| Location | Count | Files |
+|---|---|---|
+| `docs/audits/` | 9 | CHROMATIC-ENGINE, CHRONOS-TECHNICAL, HEPHAESTUS-TECHNICAL-2026-REVIEW, HYPERION-PHYSICS, MOVEMENT-ENGINE-V3, NEURAL-COMMANDER, PRE-SHOW-WORKSPACE, SELENE-COGNITION, SENSORY-LAYER |
+| `web/public/luxsync/` | 8 | CHRONOS-TIMECODER-FINAL, HEPHAESTUS-ENGINE, HYPERION-PROGRAMMER, KINETIC-CHROMATIC, OMNILIQUID-ENGINE, PRE-SHOW-WORKSPACE, SELENE-COGNITION-FINAL, SENSORY-LAYER-V2 |
+| `docs/` (root) | ~3 technical | AUDITORIA-2-SELENE-CORE-SYNERGY-ENGINE, BLUEPRINT-CONCLAVE-V2, BLUEPRINT-PUNK-CANVAS-RENDERER |
+
+**Note on overlap:** `docs/audits/` and `web/public/luxsync/` contain different versions/names of overlapping audits (e.g., CHRONOS, HEPHAESTUS, HYPERION, PRE-SHOW, SELENE, SENSORY appear in both with distinct filenames). The unique union is ~18 documents, matching the directive.
+
+### 5.2 Proposed `/whitepapers` Architecture
+
+```
+web/src/app/whitepapers/
+├── page.tsx              # Index: grid of 18 whitepaper cards (cyberpunk TechCard style)
+└── [slug]/page.tsx       # Individual whitepaper: clean markdown render
+```
+
+**Consolidation strategy:**
+1. **Canonical source:** Move/copy all 18 `.md` files into a single canonical directory: `web/public/whitepapers/` (or `web/content/whitepapers/`). Remove duplicates by picking the most recent/final version per topic (e.g., `SELENE-COGNITION-FINAL-AUDIT.md` over `SELENE-COGNITION-AUDIT.md`).
+2. **Manifest:** Create `web/src/lib/whitepapersManifest.ts` exporting an array of `{ slug, title, waveTag, summary, category, date, filePath }` — the single source of truth for both the index grid and the `[slug]` renderer.
+3. **Index page (`/whitepapers`):** A grid of `TechCard`-styled cards grouped by subsystem (Cognition, Physics, Timecoder, Editor, Sensory, Infrastructure). Each card links to `/whitepapers/[slug]`. Include a header aimed at investors/buyers: "Technical Due Diligence — 18 auditable engineering documents."
+4. **Detail page (`/whitepapers/[slug]`):** A clean, readable markdown renderer (use `react-markdown` + `@tailwindcss/typography` which is already installed via `@plugin` in `globals.css`). Wrap in the global cyberpunk shell (Header/Footer/Starfield) but with a **reading-optimized layout**: max-width prose, menta-accented headings, code blocks with the Plex Mono font.
+5. **Home linkage:** The "Desclasificación de Arquitectura" section on Home (currently 8 audit modals) becomes a 6-8 card teaser that links to `/whitepapers` for the full corpus, with a "Ver los 18 whitepapers →" CTA.
+6. **Static export compatibility:** Since `output: 'export'` is set, use `generateStaticParams()` in `[slug]/page.tsx` to pre-render all 18 whitepaper pages at build time from the manifest.
+
+### 5.3 Investor/Buyer Framing
+
+The `/whitepapers` index should include a short executive preamble framing the corpus as **due diligence material**: engineering depth, zero-dependency proof, auditability. This is the section a potential acquirer or investor will be sent a link to — it must be deep-linkable (hence the App Router migration) and render cleanly without the agency-portfolio noise.
+
+---
+
+## 6. STEP-BY-STEP EXECUTION PLAN
+
+### Phase 0 — Preservation & Inventory (no UI changes)
+1. **Snapshot current build:** `npm run build` in `web/` to confirm the static export baseline is green.
+2. **Consolidate whitepapers:** Copy all 18 due diligence `.md` files into `web/public/whitepapers/` (de-duplicate, pick final versions). Build `whitepapersManifest.ts`.
+3. **Extract shared content:** Move `AUDIT_DOCS` and `DEMO_RECORDS` arrays out of `LuxSyncSection.tsx` into `web/src/lib/luxsyncContent.ts`.
+
+### Phase 1 — Route Skeleton (App Router migration)
+4. Create the new route folders: `community/`, `labs/` (+ 7 sub-routes), `whitepapers/` (+ `[slug]`), `contact/`.
+5. Move `StarfieldSwitcher` (and optionally `HalftoneGrid`) from `page.tsx` into `layout.tsx` so the background persists across routes.
+6. Create a shared `Shell` wrapper (Header + `<main>` + Footer) as a layout component used by all non-fullscreen routes; keep the fullscreen template for Belasco/Barchafy/DemoCyberpunkVet.
+
+### Phase 2 — Home Page Pivot
+7. Rewrite `web/src/app/page.tsx` as the LuxSync flagship landing (scroll-based, sections 1-7 from §2.2), composing `PunkCanvasPlayer`, the metrics widgets, the audit teaser, Founder's Forge, and the new Community/Origins teasers.
+8. Update `layout.tsx` metadata: title, description, OpenGraph, Twitter cards → LuxSync-focused (currently says "GestIAdev - Forjamos el Futuro del Software").
+9. Update `Header.tsx`: nav becomes `Visión` (→ `/`), `Comunidad` (→ `/community`), `Whitepapers` (→ `/whitepapers`), `Contacto` (→ `/contact`). Remove Arsenal + Armería links. Remove the right-side flagship cluster (LuxSync is now Home; DentIAgest lives in `/labs`).
+
+### Phase 3 — Legacy Sidelining
+10. Build `/labs` from the existing `Armeria.tsx` grid (minus LuxSync/DentIAgest heavy cards). Convert each card's `setActiveView` to `<Link>`.
+11. Move each `armeria/*Detalle.tsx` into its `/labs/<name>/page.tsx`. Convert fullscreen views to their own layout.
+12. Move `DentIAgestSection` to `/labs/dentiagest`.
+13. **Archive or delete** `Arsenal.tsx` + `sections/arsenal/` (agency capabilities — no longer relevant).
+
+### Phase 4 — Community Refactor
+14. Move `ConclaveIndex.tsx` to `/community/page.tsx`. Update its `setActiveView` back-CTA to `<Link href="/">`.
+15. (Optional, recommended) Split the `index → category → thread` state machine into nested routes `/community/[category]/[thread]` for shareable support threads.
+16. Add the Community Teaser section on Home (recent threads fetch).
+
+### Phase 5 — Whitepapers
+17. Build `/whitepapers/page.tsx` index from `whitepapersManifest.ts` (TechCard grid, grouped by subsystem).
+18. Build `/whitepapers/[slug]/page.tsx` with `generateStaticParams()` + `react-markdown` rendering in a prose-optimized cyberpunk layout.
+19. Re-wire Home's "Desclasificación de Arquitectura" cards to link to `/whitepapers` (and optionally keep `AuditModal` as a quick-preview on click).
+
+### Phase 6 — Verification
+20. `npm run build` — confirm static export emits `index.html` for every route (`/`, `/community/`, `/labs/`, `/labs/belasco/`, …, `/whitepapers/`, `/whitepapers/<slug>/`, `/contact/`).
+21. Verify deep-linking, browser back/forward, and refresh-on-route all work on the Cloudflare Pages preview.
+22. Audit that the cyberpunk aesthetic (halftone, glitch text, menta/fucsia palette, Plex Mono, hidden scrollbars) is visually identical across all new routes.
+23. Run Lighthouse on `/` and `/whitepapers` — confirm SEO/score improvements from real URLs vs. the old state machine.
+
+---
+
+## 7. RISK REGISTER & NOTES
+
+| Risk | Mitigation |
+|---|---|
+| `output: 'export'` + App Router dynamic `[slug]` | Use `generateStaticParams()` — fully supported by static export. No server runtime needed. |
+| Supabase forum auth redirect URLs | Update Supabase allowed redirect URLs to include `/community` (was `/` with state). The "Atrapasueños" URL cleaner in `ConclaveIndex` still applies. |
+| Loss of `AnimatePresence` view transitions | Replace with route-level transitions (Framer Motion `motion` on each page's root, or Next.js loading states). Acceptable trade-off for real URLs. |
+| `HalftoneGrid` currently unused | Verify intent — either wire it globally in `layout.tsx` or keep it as an available per-route component. Do not delete. |
+| Audit doc duplication across `docs/audits` and `public/luxsync` | Resolve in Phase 0 by picking canonical versions; document the choice in `whitepapersManifest.ts`. |
+| Fullscreen "RENDER SOBERANO" views | Need their own layout (no Header/Footer) under `/labs/<name>` — replicate the `isFullscreenView` branch as a per-route layout, not a global switch. |
+
+---
+
+## 8. COMPONENT DISPOSITION MATRIX
+
+| Component | Current | After Pivot |
+|---|---|---|
+| `Hero.tsx` | Home view | **Absorbed** into new `page.tsx` (Home hero section) |
+| `LuxSyncSection.tsx` | Buried view | **Dismantled** — its parts feed Home (player, metrics, audits, pricing) + `/whitepapers` |
+| `PunkCanvasPlayer.tsx` | Inside LuxSyncSection | **Promoted** to Home primary showcase (unchanged code) |
+| `HalftoneGrid.tsx` | Defined, unused | **Preserved** — wire globally or per-route |
+| `StarfieldSwitcher.tsx` | In `page.tsx` | **Moved** to `layout.tsx` (global) |
+| `globals.css` | Global | **Untouched** |
+| `AuditModal.tsx` | LuxSyncSection | **Repurposed** — quick-preview on Home; full render in `/whitepapers/[slug]` |
+| `ConclaveIndex.tsx` | `conclave` view | **Moved** to `/community` |
+| `Armeria.tsx` + `armeria/*` | `armeria` view + details | **Moved** to `/labs` (+ sub-routes) |
+| `Arsenal.tsx` + `arsenal/*` | `arsenal` view + details | **Retired/Archived** (agency content) |
+| `DentIAgestSection.tsx` | Flagship card | **Demoted** to `/labs/dentiagest` |
+| `Header.tsx` / `Footer.tsx` | Global shell | **Updated** nav; kept in shared layout |
+| `LogoTotem` / `LogoWordmark` | Header/Footer | **Preserved** |
+
+---
+
+## 9. DELIVERABLES CHECKLIST (for the implementation phase)
+
+- [ ] `web/public/whitepapers/` with 18 canonical `.md` files
+- [ ] `web/src/lib/whitepapersManifest.ts`
+- [ ] `web/src/lib/luxsyncContent.ts` (extracted `DEMO_RECORDS` + `AUDIT_DOCS`)
+- [ ] New App Router tree (`/`, `/community`, `/labs/*`, `/whitepapers/*`, `/contact`)
+- [ ] Rewritten `page.tsx` (LuxSync flagship)
+- [ ] Updated `layout.tsx` (metadata + global Starfield/Halftone)
+- [ ] Updated `Header.tsx` (new nav)
+- [ ] `/whitepapers/[slug]` markdown renderer
+- [ ] Deleted `Arsenal.tsx` + `sections/arsenal/`
+- [ ] Green `npm run build` with all routes pre-rendered
+
+---
+
+*End of plan. No refactored code has been written. Awaiting approval to proceed with implementation.*

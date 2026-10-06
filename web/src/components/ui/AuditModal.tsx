@@ -160,7 +160,7 @@ const AuditModal = ({ audit, onClose }: AuditModalProps) => {
             {/* ── FOOTER ── */}
             <div className="px-6 py-3 border-t border-gris-trazado/30 bg-noche/60 flex items-center justify-between">
               <span className="text-[10px] font-plex-mono text-gris-neutro/40">
-                GESTIADEV · PROTOCOLO DE TRANSPARENCIA · DOC {audit.id}/8
+                LUXSYNC · TRANSPARENCY PROTOCOL · DOC {audit.id}
               </span>
               <button
                 onClick={onClose}

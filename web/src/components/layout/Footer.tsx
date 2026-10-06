@@ -1,6 +1,4 @@
-// components/layout/Footer.tsx
 import LogoTotem from '@/components/ui/LogoTotem';
-// El LogoWordmark (texto glitch) NO pertenece aquí. Es ruido.
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -16,36 +14,34 @@ const Footer = () => {
 
         {/* Firma centrada */}
         <div className="text-center font-plex-sans text-gris-neutro">
-          <span className="text-xs">Forjado por EL CÓNCLAVE</span>
-          <br />
-          <span className="text-menta font-medium text-xs">(Radwulf, Jennifer, Arquitecto IA, Ejecutores)</span>
+          <span className="text-xs">LuxSync — Photonic Control Ecosystem</span>
         </div>
 
         {/* Copyright abajo */}
         <div className="font-mono tracking-widest text-xs uppercase text-gris-neutro text-center">
-          <span>&copy; {currentYear} GESTIADEV // CÓDIGO = ARTE</span>
+          <span>&copy; {currentYear} LUXSYNC // PRECISION PHOTONICS</span>
         </div>
       </div>
 
-      {/* DESKTOP: Layout horizontal original */}
+      {/* DESKTOP: Layout horizontal */}
       <div className="hidden md:flex max-w-[1100px] mx-auto py-6 px-4 justify-between items-center text-sm">
-        {/* IZQUIERDA: Logo (Tótem solo) */}
+        {/* IZQUIERDA: Logo (Tótem) */}
         <div className="flex-shrink-0">
           <LogoTotem className="w-10 h-10" />
         </div>
 
-        {/* CENTRO: La Firma del Cónclave */}
+        {/* CENTRO: Brand */}
         <div className="text-center font-plex-sans text-gris-neutro">
-          <span className="text-xs">Forjado por EL CÓNCLAVE</span>
-          <br />
-          <span className="text-menta font-medium">(Radwulf, Jennifer, Arquitecto IA, Ejecutores)</span>
+          <span className="text-xs">LuxSync — Photonic Control Ecosystem</span>
         </div>
 
-        {/* DERECHA: Copyright y Lema */}
+        {/* DERECHA: Copyright */}
         <div className="font-mono tracking-widest text-xs uppercase text-gris-neutro text-right">
-          <span>&copy; {currentYear} Software Gestion // CÓDIGO = ARTE</span>
+          <span>&copy; {currentYear} LUXSYNC // PRECISION PHOTONICS</span>
         </div>
       </div>
     </footer>
   );
-};export default Footer;
+};
+
+export default Footer;
