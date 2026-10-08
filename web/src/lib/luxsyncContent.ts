@@ -65,9 +65,9 @@ export const DEMO_RECORDS: DemoRecord[] = [
   {
     id: 'club4depo',
     title: 'CLUB DEPO — SET 04',
-    desc: 'Club Depo session — extended capture of the live rig.',
+    desc: 'Club Depo session — extended capture of the live rig. (54MB > 50MB Supabase free cap — pending recompression)',
     category: 'Shows & Workshop',
-    videoUrl: vid('Club4depo.webm'),
+    videoUrl: '',
     youtubeId: '',
   },
   {
@@ -134,12 +134,13 @@ export const DEMO_RECORDS: DemoRecord[] = [
     videoUrl: vid('Ravexpoptoscana.webm'),
     youtubeId: '',
   },
-  // ── Presentations — OBS module & workflow walkthroughs ──
+  // (Selene captures + Wheelsmith también van a Shows & Workshop por ahora —
+  // el usuario subirá material propio para las otras dos pestañas)
   {
     id: 'selenelatino1',
     title: 'SELENE — LATINO SET 01',
     desc: 'Selene cognitive layer driving a latin set — OBS capture.',
-    category: 'Presentations',
+    category: 'Shows & Workshop',
     videoUrl: vid('Selenelatino1.webm'),
     youtubeId: '',
   },
@@ -147,7 +148,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     id: 'selenelatino2',
     title: 'SELENE — LATINO SET 02',
     desc: 'Selene on a latin session — decision engine in real time.',
-    category: 'Presentations',
+    category: 'Shows & Workshop',
     videoUrl: vid('Selenelatino2.webm'),
     youtubeId: '',
   },
@@ -155,7 +156,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     id: 'selenelatino4',
     title: 'SELENE — LATINO SET 04',
     desc: 'Extended Selene capture — latin set, autonomous cues.',
-    category: 'Presentations',
+    category: 'Shows & Workshop',
     videoUrl: vid('Selenelatino4.webm'),
     youtubeId: '',
   },
@@ -163,10 +164,11 @@ export const DEMO_RECORDS: DemoRecord[] = [
     id: 'selenetranqui1',
     title: 'SELENE — CHILL SESSION',
     desc: 'Low-energy set — Selene smooth transitions, OBS capture.',
-    category: 'Presentations',
+    category: 'Shows & Workshop',
     videoUrl: vid('Selenetranqui1.webm'),
     youtubeId: '',
   },
+  // ── Presentations — OBS module & workflow walkthroughs (pendiente de material) ──
   {
     id: 'demo-selene',
     title: 'SELENE IA CORE',
@@ -175,15 +177,15 @@ export const DEMO_RECORDS: DemoRecord[] = [
     videoUrl: '',
     youtubeId: '',
   },
-  // ── Demos & Shaders — Theia 2.0 engine & UI simulations ──
   {
     id: 'wheelsmith',
     title: 'WHEELSMITH MODULE',
     desc: 'Wheelsmith parameter editor — UI walkthrough capture.',
-    category: 'Demos & Shaders',
+    category: 'Shows & Workshop',
     videoUrl: vid('Wheelsmith.webm'),
     youtubeId: '',
   },
+  // ── Demos & Shaders — Theia 2.0 engine & UI simulations (pendiente de material) ──
   {
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
