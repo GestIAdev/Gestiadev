@@ -75,6 +75,32 @@ const CATEGORY_LABELS: Record<string, { name: string; description: string }> = {
 const catName = (cat: { slug: string; name: string }) => CATEGORY_LABELS[cat.slug]?.name ?? cat.name;
 const catDesc = (cat: DbCategory) => CATEGORY_LABELS[cat.slug]?.description ?? cat.description;
 
+// ── AUTORIZACIÓN — GOD MODE ──
+// Admin = email oficial GestIAdev, o metadata role=admin, o alias Radwulf_Admin
+const ADMIN_EMAIL = 'gestiadev@gmail.com';
+const ADMIN_USERNAME = 'Radwulf_Admin';
+const ADMIN_ONLY_SLUGS = new Set(['anuncios-oficiales']);
+
+const isAdminUser = (session: Session | null, profile: DbProfile | null): boolean => {
+  const u = session?.user;
+  if (!u) return false;
+  return (
+    u.email === ADMIN_EMAIL ||
+    u.user_metadata?.role === 'admin' ||
+    u.user_metadata?.username === ADMIN_USERNAME ||
+    profile?.username === ADMIN_USERNAME
+  );
+};
+
+const canModify = (
+  session: Session | null,
+  isAdmin: boolean,
+  authorId: string | null | undefined
+): boolean => isAdmin || (!!session?.user?.id && session.user.id === authorId);
+
+const canCreateInCategory = (slug: string | undefined, isAdmin: boolean): boolean =>
+  !slug || !ADMIN_ONLY_SLUGS.has(slug) || isAdmin;
+
 // Helper: timestamp ISO → texto relativo legible
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -167,6 +193,22 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [threads, setThreads] = useState<LiveThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Vista a la que vuelve el botón "back" desde un hilo (index si venía de Recent Threads)
+  const [threadReturnTo, setThreadReturnTo] = useState<ConclaveView>('index');
+
+  const isAdmin = isAdminUser(session, profile);
+
+  // Papelera rápida admin — borra un hilo desde cualquier listado
+  const handleAdminThreadDelete = async (threadId: string) => {
+    if (!isAdmin) return;
+    if (!window.confirm('Delete this thread permanently?')) return;
+    try {
+      await deleteThread(threadId);
+      setThreads(prev => prev.filter(t => t.id !== threadId));
+    } catch (err) {
+      console.error('[Developer Hub] Admin delete failed:', err);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -279,9 +321,11 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
             category={selectedCategory}
             threads={threads.filter(t => t.category?.slug === selectedCategory.slug)}
             onBack={() => setConclaveView('index')}
-            onSelectThread={(thread) => { setSelectedThread(thread); setConclaveView('thread'); }}
+            onSelectThread={(thread) => { setThreadReturnTo('category'); setSelectedThread(thread); setConclaveView('thread'); }}
             onCreateThread={() => setShowCreateModal(true)}
             session={session}
+            isAdmin={isAdmin}
+            onDeleteThread={handleAdminThreadDelete}
           />
         );
       case 'thread':
@@ -289,7 +333,9 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
           <ThreadView
             thread={selectedThread}
             session={session}
-            onBack={() => setConclaveView('category')}
+            isAdmin={isAdmin}
+            onBack={() => setConclaveView(threadReturnTo)}
+            onDeleted={() => { loadData(); setConclaveView(threadReturnTo); }}
           />
         );
       default:
@@ -344,21 +390,33 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
       ) : (
         <div className="flex flex-col mb-10 bg-black/70 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden">
           {threads.map((thread, idx) => (
-            <button
+            <div
               key={thread.id}
-              onClick={() => { setSelectedThread(thread); setConclaveView('thread'); }}
-              className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group ${
+              role="button"
+              tabIndex={0}
+              onClick={() => { setThreadReturnTo('index'); setSelectedThread(thread); setConclaveView('thread'); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { setThreadReturnTo('index'); setSelectedThread(thread); setConclaveView('thread'); } }}
+              className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group cursor-pointer ${
                 idx < threads.length - 1 ? 'border-b border-gris-trazado/20' : ''
               }`}
             >
               {/* Badges row — cuadrados, sin rounded-full */}
-              {(thread.is_pinned || thread.category) && (
+              {(thread.is_pinned || thread.category || isAdmin) && (
                 <div className="flex items-center gap-2 mb-2.5 flex-wrap">
                   {thread.is_pinned && (
                     <span className="text-[10px] font-plex-mono bg-menta/10 text-menta border border-menta/30 px-2 py-0.5 tracking-widest">▲ PINNED</span>
                   )}
                   {thread.category && (
                     <span className="text-[10px] font-plex-mono text-gray-400 border border-gris-trazado/30 px-2 py-0.5">{catName(thread.category)}</span>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleAdminThreadDelete(thread.id); }}
+                      title="Admin — delete thread"
+                      className="ml-auto text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:border-red-400/30 transition-all"
+                    >
+                      [ DEL ]
+                    </button>
                   )}
                 </div>
               )}
@@ -379,7 +437,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                 <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} replies</span>
                 <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}
@@ -444,6 +502,11 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
                   <span className="text-[11px] font-plex-mono text-menta tracking-wide hidden sm:inline">
                     {profile.username ?? 'netrunner'}
                   </span>
+                  {isAdmin && (
+                    <span className="text-[9px] font-plex-mono text-yellow-500/90 border border-yellow-500/40 px-1 py-px tracking-widest" title="Admin GOD mode">
+                      [GOD]
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -629,6 +692,7 @@ const ConclaveIndex = ({}: ConclaveIndexProps) => {
           <CreateThreadModal
             categories={categories}
             session={session}
+            isAdmin={isAdmin}
             onClose={() => setShowCreateModal(false)}
             onPublished={() => { loadData(); setShowCreateModal(false); }}
           />
@@ -759,10 +823,12 @@ interface ThreadListProps {
   onBack: () => void;
   onSelectThread: (thread: LiveThread) => void;
   onCreateThread: () => void;
+  onDeleteThread: (threadId: string) => void;
   session?: Session | null;
+  isAdmin: boolean;
 }
 
-const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread, session }: ThreadListProps & { session: Session | null }) => {
+const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread, onDeleteThread, session, isAdmin }: ThreadListProps & { session: Session | null }) => {
   const categoryIconMap: Record<CategoryIcon, React.ReactNode> = {
     megaphone: <IconMegaphone />,
     wrench: <IconWrench />,
@@ -785,7 +851,12 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
     <div className="flex items-center gap-3 mb-6">
       <span className="text-menta/70">{categoryIconMap[iconKey]}</span>
       <div>
-        <h2 className="text-xl font-plex-mono font-bold text-hueso">{catName(category)}</h2>
+        <h2 className="text-xl font-plex-mono font-bold text-hueso flex items-center gap-2">
+          {catName(category)}
+          {ADMIN_ONLY_SLUGS.has(category.slug) && (
+            <span className="text-[9px] font-plex-mono text-yellow-500/80 border border-yellow-500/30 px-1.5 py-px tracking-widest">ADMIN ONLY</span>
+          )}
+        </h2>
         <p className="text-xs font-plex-sans text-gray-400">{catDesc(category)}</p>
       </div>
     </div>
@@ -794,19 +865,25 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
     {threads.length === 0 ? (
       <div className="bg-black/60 backdrop-blur-md border border-white/5 border-dashed rounded-xl p-12 text-center">
         <p className="text-sm font-plex-mono text-gray-400">No threads in this category yet.</p>
-        {session && (
+        {session && canCreateInCategory(category.slug, isAdmin) && (
           <button onClick={onCreateThread} className="mt-3 text-xs font-plex-mono text-menta hover:underline">
             Be the first to post →
           </button>
+        )}
+        {session && !canCreateInCategory(category.slug, isAdmin) && (
+          <p className="mt-3 text-[10px] font-plex-mono text-yellow-500/60">Only moderators can post in this section.</p>
         )}
       </div>
     ) : (
       <div className="flex flex-col mb-8 bg-black/60 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden">
         {threads.map((thread, idx) => (
-          <button
+          <div
             key={thread.id}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelectThread(thread)}
-            className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group ${
+            onKeyDown={(e) => { if (e.key === 'Enter') onSelectThread(thread); }}
+            className={`text-left w-full px-6 py-5 hover:bg-menta/[0.04] transition-all duration-200 group cursor-pointer ${
               idx < threads.length - 1 ? 'border-b border-gris-trazado/20' : ''
             }`}
           >
@@ -829,8 +906,17 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
               </div>
               <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{thread.reply_count} replies</span>
               <span className="text-[10px] font-plex-mono text-gray-400 tabular-nums">{relativeTime(thread.created_at)}</span>
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeleteThread(thread.id); }}
+                  title="Admin — delete thread"
+                  className="ml-auto text-[9px] font-plex-mono text-gray-400 border border-gris-trazado/20 px-1.5 py-0.5 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:border-red-400/30 transition-all"
+                >
+                  [ DEL ]
+                </button>
+              )}
             </div>
-          </button>
+          </div>
         ))}
       </div>
     )}
@@ -851,10 +937,12 @@ const ThreadList = ({ category, threads, onBack, onSelectThread, onCreateThread,
 interface ThreadViewProps {
   thread: LiveThread;
   session: Session | null;
+  isAdmin: boolean;
   onBack: () => void;
+  onDeleted?: () => void;
 }
 
-const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
+const ThreadView = ({ thread, session, isAdmin, onBack, onDeleted }: ThreadViewProps) => {
   const [replies, setReplies] = useState<LiveReply[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(true);
   const [replyContent, setReplyContent] = useState('');
@@ -875,7 +963,8 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
   const [replyActionLoading, setReplyActionLoading] = useState(false);
   const [replyActionError, setReplyActionError] = useState<string | null>(null);
 
-  const isThreadAuthor = !!session?.user?.id && session.user.id === thread.author_id;
+  // GOD MODE: el admin puede editar/borrar cualquier hilo; el autor, el suyo
+  const isThreadAuthor = canModify(session, isAdmin, thread.author_id);
 
   useEffect(() => {
     setRepliesLoading(true);
@@ -912,7 +1001,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
     setThreadActionLoading(true);
     setThreadActionError(null);
     try {
-      await updateThread(thread.id, session.user.id, {
+      await updateThread(thread.id, {
         title: editThreadTitle.trim(),
         content: editThreadContent.trim(),
       });
@@ -932,9 +1021,9 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
     setThreadActionLoading(true);
     setThreadActionError(null);
     try {
-      await deleteThread(thread.id, session.user.id);
+      await deleteThread(thread.id);
       setThreadDeleted(true);
-      setTimeout(onBack, 800);
+      setTimeout(() => (onDeleted ?? onBack)(), 800);
     } catch (err: any) {
       setThreadActionError(err.message ?? 'Failed to delete.');
       setThreadActionLoading(false);
@@ -953,7 +1042,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
     setReplyActionLoading(true);
     setReplyActionError(null);
     try {
-      await updateReply(replyId, session.user.id, editReplyContent.trim());
+      await updateReply(replyId, editReplyContent.trim());
       setReplies(prev => prev.map(r => r.id === replyId ? { ...r, content: editReplyContent.trim() } : r));
       setEditingReplyId(null);
     } catch (err: any) {
@@ -969,7 +1058,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
     setReplyActionLoading(true);
     setReplyActionError(null);
     try {
-      await deleteReply(replyId, session.user.id);
+      await deleteReply(replyId);
       setReplies(prev => prev.filter(r => r.id !== replyId));
     } catch (err: any) {
       setReplyActionError(err.message ?? 'Failed to delete reply.');
@@ -1095,7 +1184,7 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
           </div>
         ) : (
           replies.map((reply) => {
-            const isReplyAuthor = !!session?.user?.id && session.user.id === reply.author_id;
+            const isReplyAuthor = canModify(session, isAdmin, reply.author_id);
             const isEditing = editingReplyId === reply.id;
             return (
               <div key={reply.id} className="relative ml-4 pl-5 mb-3 last:mb-0 group/reply">
@@ -1222,22 +1311,30 @@ const ThreadView = ({ thread, session, onBack }: ThreadViewProps) => {
 interface CreateThreadModalProps {
   categories: Category[];
   session: Session | null;
+  isAdmin: boolean;
   onClose: () => void;
   onPublished: () => void;
 }
 
-const CreateThreadModal = ({ categories, session, onClose, onPublished }: CreateThreadModalProps) => {
+const CreateThreadModal = ({ categories, session, isAdmin, onClose, onPublished }: CreateThreadModalProps) => {
   const [categoryId, setCategoryId] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Secciones ADMIN_ONLY no aparecen en el select para usuarios normales
+  const allowedCategories = categories.filter(c => canCreateInCategory(c.slug, isAdmin));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.id) return;
     if (!categoryId || !title.trim() || !content.trim()) {
       setError('Fill in all required fields.');
+      return;
+    }
+    const chosenCat = categories.find(c => c.id === categoryId);
+    if (!canCreateInCategory(chosenCat?.slug, isAdmin)) {
+      setError('Only moderators can post in this section.');
       return;
     }
     setIsSubmitting(true);
@@ -1291,7 +1388,7 @@ const CreateThreadModal = ({ categories, session, onClose, onPublished }: Create
             className="w-full bg-noche border border-gris-trazado/50 rounded-lg px-4 py-3 text-sm font-plex-sans text-hueso focus:outline-none focus:border-menta/50 transition-colors"
           >
             <option value="" disabled>Select a section...</option>
-            {categories.map((cat) => (
+            {allowedCategories.map((cat) => (
               <option key={cat.id} value={cat.id}>{catName(cat)}</option>
             ))}
           </select>

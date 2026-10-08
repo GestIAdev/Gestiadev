@@ -172,50 +172,44 @@ export async function updateProfile(
 
 export async function updateThread(
   threadId: string,
-  authorId: string,
   updates: { title?: string; content?: string }
 ): Promise<void> {
+  // La autoría/admin la impone la policy RLS (author_id = auth.uid() OR is_admin)
   const { error } = await supabase
     .from('threads')
     .update(updates)
-    .eq('id', threadId)
-    .eq('author_id', authorId); // doble validación cliente antes del RLS
+    .eq('id', threadId);
   if (error) throw error;
 }
 
 export async function deleteThread(
-  threadId: string,
-  authorId: string
+  threadId: string
 ): Promise<void> {
+  // replies caen por ON DELETE CASCADE (ver bloque SQL de policies)
   const { error } = await supabase
     .from('threads')
     .delete()
-    .eq('id', threadId)
-    .eq('author_id', authorId); // doble validación cliente antes del RLS
+    .eq('id', threadId);
   if (error) throw error;
 }
 
 export async function updateReply(
   replyId: string,
-  authorId: string,
   content: string
 ): Promise<void> {
   const { error } = await supabase
     .from('replies')
     .update({ content })
-    .eq('id', replyId)
-    .eq('author_id', authorId); // doble validación cliente antes del RLS
+    .eq('id', replyId);
   if (error) throw error;
 }
 
 export async function deleteReply(
-  replyId: string,
-  authorId: string
+  replyId: string
 ): Promise<void> {
   const { error } = await supabase
     .from('replies')
     .delete()
-    .eq('id', replyId)
-    .eq('author_id', authorId); // doble validación cliente antes del RLS
+    .eq('id', replyId);
   if (error) throw error;
 }
