@@ -91,7 +91,10 @@ export default function PunkCanvasPlayer({
   const drawFrame = useCallback(() => {
     const video  = videoRef.current;
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d', { alpha: false, desynchronized: true });
+    // Sin desynchronized:true — en GPUs antiguas (Mali/MediaTek) el contexto
+    // desincronizado devuelve negro al hacer drawImage(video). alpha:false sí
+    // es seguro y ahorra el buffer del canal alfa en VRAM.
+    const ctx = canvas?.getContext('2d', { alpha: false });
     if (!video || !ctx) return;
 
     // Leer tamaño desde ref — CERO accesos al DOM, cero reflow (WAVE 2528)
@@ -395,12 +398,12 @@ export default function PunkCanvasPlayer({
     >
 
       {/* ── VIDEO OCULTO: Solo decodifica, nunca se muestra al usuario ──
-          OJO: no usar display:none — en móviles (iOS Safari, parte de Android)
-          un vídeo display:none no produce frames para drawImage. En su lugar
-          queda renderizado pero invisible: 1px, opacity 0, sin pointer events. */}
+          OJO: ni display:none ni opacity:0 — en móviles el compositor omite
+          capas totalmente transparentes y drawImage devuelve negro.
+          opacity-[0.01] fuerza pintado real manteniéndolo invisible. */}
       <video
         ref={videoRef}
-        className="absolute w-px h-px opacity-0 pointer-events-none"
+        className="absolute w-px h-px opacity-[0.01] pointer-events-none"
         playsInline
         preload="auto"
         aria-hidden="true"
