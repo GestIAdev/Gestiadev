@@ -20,9 +20,9 @@ export interface DemoRecord {
   youtubeId: string;
 }
 
-// Supabase Storage public base — all videos live under videos1/Shows & workshop/
+// Supabase Storage public base — all videos live under videos1/Shows & Workshop/
 const SB_STORAGE =
-  'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Shows%20&%20workshop';
+  'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Shows%20&%20Workshop';
 const vid = (file: string) => `${SB_STORAGE}/${file}`;
 
 export interface AuditDoc {
@@ -168,15 +168,6 @@ export const DEMO_RECORDS: DemoRecord[] = [
     videoUrl: vid('Selenetranqui1.webm'),
     youtubeId: '',
   },
-  // ── Presentations — OBS module & workflow walkthroughs (pendiente de material) ──
-  {
-    id: 'demo-selene',
-    title: 'SELENE IA CORE',
-    desc: 'Live AI for autonomous lighting decisions, sub-frame latency.',
-    category: 'Presentations',
-    videoUrl: '',
-    youtubeId: '',
-  },
   {
     id: 'wheelsmith',
     title: 'WHEELSMITH MODULE',
@@ -185,31 +176,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     videoUrl: vid('Wheelsmith.webm'),
     youtubeId: '',
   },
-  // ── Demos & Shaders — Theia 2.0 engine & UI simulations (pendiente de material) ──
-  {
-    id: 'demo-omniliquid',
-    title: 'OMNILIQUID ENGINE',
-    desc: 'Theia 2.0 GLSL fluid engine — real-time spectral reactivity.',
-    category: 'Demos & Shaders',
-    videoUrl: '',
-    youtubeId: '',
-  },
-  {
-    id: 'demo-chronos',
-    title: 'HYPERION 3D NEONBLOOM',
-    desc: '3D stage visualizer — neon bloom render pipeline.',
-    category: 'Demos & Shaders',
-    videoUrl: '',
-    youtubeId: '',
-  },
-  {
-    id: 'demo-hephaestus',
-    title: 'HEPHAESTUS FX',
-    desc: 'DMX automation curve editor with high-precision vector rendering.',
-    category: 'Demos & Shaders',
-    videoUrl: '',
-    youtubeId: '',
-  },
+  // (Presentations y Demos & Shaders quedan vacías hasta que se suba su material)
 ];
 
 // ─── AUDIT DOCS — Technical Due Diligence (Home teaser) ───
