@@ -37,11 +37,11 @@ const Contact = () => {
                 Primary Email
               </div>
               <a
-                href="mailto:contact@luxsync.dev"
+                href="mailto:gestiadev@gmail.com"
                 className="flex items-center gap-2 text-menta hover:text-hueso transition-colors group text-base"
               >
                 <Mail className="w-4 h-4 flex-shrink-0" />
-                <span className="group-hover:underline">contact@luxsync.dev</span>
+                <span className="group-hover:underline">gestiadev@gmail.com</span>
               </a>
             </div>
 
@@ -51,14 +51,17 @@ const Contact = () => {
                 Repository
               </div>
               <a
-                href="https://github.com/pinkyfloyder/GestIAdev"
+                href="https://github.com/GestIAdev/LuxSync/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-gris-neutro hover:text-menta transition-colors group"
               >
                 <Github className="w-4 h-4 flex-shrink-0" />
-                <span className="group-hover:underline">github.com/LuxSync</span>
+                <span className="group-hover:underline">github.com/GestIAdev/LuxSync</span>
               </a>
+              <p className="mt-1 text-[10px] font-plex-mono text-gray-400">
+                Private repo — access granted on request
+              </p>
             </div>
 
             {/* Social */}
