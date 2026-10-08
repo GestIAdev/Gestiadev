@@ -3,12 +3,12 @@
 // Extracted from LuxSyncSection.tsx during the Corporate Wash pivot.
 // ============================================================
 
-export type DemoCategory = 'Presentations' | 'Live Shows' | 'Technical Demos';
+export type DemoCategory = 'Shows & Workshop' | 'Presentations' | 'Demos & Shaders';
 
 export const DEMO_CATEGORIES: DemoCategory[] = [
+  'Shows & Workshop',
   'Presentations',
-  'Live Shows',
-  'Technical Demos',
+  'Demos & Shaders',
 ];
 
 export interface DemoRecord {
@@ -20,6 +20,11 @@ export interface DemoRecord {
   youtubeId: string;
 }
 
+// Supabase Storage public base — all 17 videos live under <bucket>/<category-folder>/<file>
+const SB_STORAGE =
+  'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1';
+const vid = (path: string) => `${SB_STORAGE}/${path}`;
+
 export interface AuditDoc {
   id: string;
   title: string;
@@ -29,7 +34,139 @@ export interface AuditDoc {
 }
 
 // ─── DEMO RECORDS — Showcase Player Playlist ───
+// Live footage (Shows & Workshop) + OBS module walkthroughs (Presentations)
+// + Theia/UI captures (Demos & Shaders). All .webm served from Supabase Storage.
 export const DEMO_RECORDS: DemoRecord[] = [
+  // ── Shows & Workshop — real venue & bench recordings ──
+  {
+    id: 'club1depo',
+    title: 'CLUB DEPO — SET 01',
+    desc: 'Live club recording — LuxSync driving the house rig in real time.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/club1depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'club2depo',
+    title: 'CLUB DEPO — SET 02',
+    desc: 'Club Depo session — second cut, full DMX automation.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/club2depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'club3depo',
+    title: 'CLUB DEPO — SET 03',
+    desc: 'Club Depo session — third cut, live fixture output.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/club3depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'club4depo',
+    title: 'CLUB DEPO — SET 04',
+    desc: 'Club Depo session — extended capture of the live rig.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/club4depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'insidecabin1',
+    title: 'INSIDE THE CABIN',
+    desc: 'Booth POV — live LuxSync console operation during a set.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/insidecabin1.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'latino1depo',
+    title: 'LATINO NIGHT — DEPO',
+    desc: 'Latin-session club capture — LuxSync running the full rig.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/latino1depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'operator1',
+    title: 'OPERATOR POV 01',
+    desc: 'Hands-on footage of the LuxSync controller in a live show.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/operator1.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'ravex1depo',
+    title: 'RAVEX — DEPO 01',
+    desc: 'RaveX event capture — strobe and energy cues under LuxSync.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/ravex1depo.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'ravex41',
+    title: 'RAVEX 41 — CUT A',
+    desc: 'RaveX warehouse session — live fixture output.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/ravex41.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'ravex41-2',
+    title: 'RAVEX 41 — CUT B',
+    desc: 'Second angle of the RaveX 41 set.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/ravex41-2.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'ravex71',
+    title: 'RAVEX 71',
+    desc: 'RaveX series — live show capture, full rig control.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/ravex71.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'ravexpoptoscana',
+    title: 'RAVEX — POP TOSCANA',
+    desc: 'RaveX event at Pop Toscana — LuxSync on the house rig.',
+    category: 'Shows & Workshop',
+    videoUrl: vid('shows-workshop/ravexpoptoscana.webm'),
+    youtubeId: '',
+  },
+  // ── Presentations — OBS module & workflow walkthroughs ──
+  {
+    id: 'selenelatino1',
+    title: 'SELENE — LATINO SET 01',
+    desc: 'Selene cognitive layer driving a latin set — OBS capture.',
+    category: 'Presentations',
+    videoUrl: vid('presentations/selenelatino1.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'selenelatino2',
+    title: 'SELENE — LATINO SET 02',
+    desc: 'Selene on a latin session — decision engine in real time.',
+    category: 'Presentations',
+    videoUrl: vid('presentations/selenelatino2.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'selenelatino4',
+    title: 'SELENE — LATINO SET 04',
+    desc: 'Extended Selene capture — latin set, autonomous cues.',
+    category: 'Presentations',
+    videoUrl: vid('presentations/selenelatino4.webm'),
+    youtubeId: '',
+  },
+  {
+    id: 'selenetranqui1',
+    title: 'SELENE — CHILL SESSION',
+    desc: 'Low-energy set — Selene smooth transitions, OBS capture.',
+    category: 'Presentations',
+    videoUrl: vid('presentations/selenetranqui1.webm'),
+    youtubeId: '',
+  },
   {
     id: 'demo-selene',
     title: 'SELENE IA CORE',
@@ -38,29 +175,36 @@ export const DEMO_RECORDS: DemoRecord[] = [
     videoUrl: '',
     youtubeId: '',
   },
+  // ── Demos & Shaders — Theia 2.0 engine & UI simulations ──
+  {
+    id: 'wheelsmith',
+    title: 'WHEELSMITH MODULE',
+    desc: 'Wheelsmith parameter editor — UI walkthrough capture.',
+    category: 'Demos & Shaders',
+    videoUrl: vid('demos-shaders/wheelsmith.webm'),
+    youtubeId: '',
+  },
   {
     id: 'demo-omniliquid',
     title: 'OMNILIQUID ENGINE',
-    desc: 'Fluid physics DMX in real time. Waves, turbulence and spectral reactivity.',
-    category: 'Technical Demos',
-    videoUrl:
-      'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/omniliquidnoselene.mp4',
+    desc: 'Theia 2.0 GLSL fluid engine — real-time spectral reactivity.',
+    category: 'Demos & Shaders',
+    videoUrl: '',
     youtubeId: '',
   },
   {
     id: 'demo-chronos',
     title: 'HYPERION 3D NEONBLOOM',
-    desc: 'Offline RSA cryptography and Zero-Trust Architecture applied to DMX timeline.',
-    category: 'Technical Demos',
-    videoUrl:
-      'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Liquid3d.webm',
+    desc: '3D stage visualizer — neon bloom render pipeline.',
+    category: 'Demos & Shaders',
+    videoUrl: '',
     youtubeId: '',
   },
   {
     id: 'demo-hephaestus',
     title: 'HEPHAESTUS FX',
     desc: 'DMX automation curve editor with high-precision vector rendering.',
-    category: 'Technical Demos',
+    category: 'Demos & Shaders',
     videoUrl: '',
     youtubeId: '',
   },

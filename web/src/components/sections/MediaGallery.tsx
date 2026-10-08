@@ -9,7 +9,7 @@ import {
 } from '@/lib/luxsyncContent';
 
 export default function MediaGallery() {
-  const [activeCategory, setActiveCategory] = useState<DemoCategory>('Technical Demos');
+  const [activeCategory, setActiveCategory] = useState<DemoCategory>('Shows & Workshop');
   const [activeDemoIndex, setActiveDemoIndex] = useState<number>(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<'canvas' | 'youtube'>('canvas');

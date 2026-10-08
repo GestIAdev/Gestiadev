@@ -178,7 +178,7 @@ export default function PunkCanvasPlayer({
     v.src          = src;
     v.crossOrigin  = 'anonymous'; // Requerido para drawImage desde CDN/Supabase
     v.playsInline  = true;
-    v.preload      = 'auto';
+    v.preload      = 'metadata';
     v.volume       = volume;
     v.muted        = isMuted;
 
@@ -375,7 +375,7 @@ export default function PunkCanvasPlayer({
         ref={videoRef}
         className="hidden"
         playsInline
-        preload="auto"
+        preload="metadata"
         aria-hidden="true"
         tabIndex={-1}
       />
