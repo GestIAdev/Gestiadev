@@ -88,49 +88,52 @@ export default function PunkCanvasPlayer({
   // En una pantalla a 120Hz reproduciendo vídeo a 30fps, rAF ejecutaría 4 veces
   // por cada frame útil. rvFC ejecuta EXACTAMENTE 1 vez por frame. Cero ciclos
   // malgastados. Fallback a rAF para Safari/Firefox.
-  const startLoop = useCallback(() => {
+  const drawFrame = useCallback(() => {
     const video  = videoRef.current;
     const canvas = canvasRef.current;
-    // God Mode: alpha:false ahorra un buffer de canal alfa en VRAM.
-    // desynchronized:true salta la sincronización con el compositor del navegador.
     const ctx = canvas?.getContext('2d', { alpha: false, desynchronized: true });
-    if (!video || !canvas || !ctx) return;
+    if (!video || !ctx) return;
+
+    // Leer tamaño desde ref — CERO accesos al DOM, cero reflow (WAVE 2528)
+    const { w, h } = canvasSizeRef.current;
+    if (video.readyState < 2 || video.videoWidth === 0 || w === 0 || h === 0) return;
+
+    // Letterboxing con ENTEROS PUROS — sin decimales = sin sub-pixel blitting
+    // Chrome fuerza antialiasing en la iGPU si recibe valores flotantes → destroza fps
+    const va = video.videoWidth / video.videoHeight;
+    const ca = w / h;
+    let dw: number, dh: number, ox: number, oy: number;
+
+    if (ca > va) {
+      dh = h; dw = dh * va; ox = (w - dw) / 2; oy = 0;
+    } else {
+      dw = w; dh = dw / va; ox = 0; oy = (h - dh) / 2;
+    }
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+    // Math.floor en TODOS los parámetros: fuerza integer blitting en iGPU
+    ctx.drawImage(video,
+      Math.floor(ox), Math.floor(oy),
+      Math.floor(dw), Math.floor(dh)
+    );
+
+    // Throttle de setCurrentTime: solo cada 250ms
+    const now = performance.now();
+    if (now - lastTimeRef.current > 250) {
+      lastTimeRef.current = now;
+      setCurrentTime(video.currentTime);
+    }
+  }, []);
+
+  const startLoop = useCallback(() => {
+    const video  = videoRef.current;
+    if (!video || !canvasRef.current) return;
 
     if (isLoopActive.current) return;
     isLoopActive.current = true;
 
-    const draw = () => {
-      // Leer tamaño desde ref — CERO accesos al DOM, cero reflow (WAVE 2528)
-      const { w, h } = canvasSizeRef.current;
-      if (video.readyState < 2 || video.videoWidth === 0 || w === 0 || h === 0) return;
-
-      // Letterboxing con ENTEROS PUROS — sin decimales = sin sub-pixel blitting
-      // Chrome fuerza antialiasing en la iGPU si recibe valores flotantes → destroza fps
-      const va = video.videoWidth / video.videoHeight;
-      const ca = w / h;
-      let dw: number, dh: number, ox: number, oy: number;
-
-      if (ca > va) {
-        dh = h; dw = dh * va; ox = (w - dw) / 2; oy = 0;
-      } else {
-        dw = w; dh = dw / va; ox = 0; oy = (h - dh) / 2;
-      }
-
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, w, h);
-      // Math.floor en TODOS los parámetros: fuerza integer blitting en iGPU
-      ctx.drawImage(video,
-        Math.floor(ox), Math.floor(oy),
-        Math.floor(dw), Math.floor(dh)
-      );
-
-      // Throttle de setCurrentTime: solo cada 250ms
-      const now = performance.now();
-      if (now - lastTimeRef.current > 250) {
-        lastTimeRef.current = now;
-        setCurrentTime(video.currentTime);
-      }
-    };
+    const draw = () => drawFrame();
 
     if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
       // Ruta Chromium: callback disparado SOLO al llegar un frame nuevo del decoder.
@@ -178,7 +181,9 @@ export default function PunkCanvasPlayer({
     v.src          = src;
     v.crossOrigin  = 'anonymous'; // Requerido para drawImage desde CDN/Supabase
     v.playsInline  = true;
-    v.preload      = 'metadata';
+    // El player solo se monta tras click del usuario → preload auto garantiza
+    // loadeddata/canplay en móviles (con 'metadata' algunos no disparan frames)
+    v.preload      = 'auto';
     v.volume       = volume;
     v.muted        = isMuted;
 
@@ -189,10 +194,25 @@ export default function PunkCanvasPlayer({
         setIsPlaying(true);
         startLoop();
       }).catch(() => {
-        // Autoplay bloqueado (mobile policy): mostrar controles
-        setIsPlaying(false);
+        // Autoplay con audio bloqueado (móvil): reintentar muteado — política OK
+        v.muted = true;
+        setIsMuted(true);
+        v.play().then(() => {
+          setIsPlaying(true);
+          startLoop();
+        }).catch(() => {
+          // Autoplay totalmente bloqueado: mostrar controles, canvas ya tiene poster
+          setIsPlaying(false);
+        });
       });
     };
+
+    // Poster frame: pinta el primer frame decodificado aunque nunca se haga play
+    // (móviles con preload=metadata no generan frame hasta loadeddata + seek)
+    const onLoadedData = () => { drawFrame(); };
+    // Safety net móvil: donde rvFC no dispara con vídeo visualmente oculto,
+    // 'timeupdate' (~4Hz) garantiza que el canvas reciba frames igualmente
+    const onTimeUpdate = () => { drawFrame(); };
 
     const onWaiting  = () => setIsBuffering(true);
     const onPlaying  = () => { setIsBuffering(false); startLoop(); };
@@ -202,6 +222,8 @@ export default function PunkCanvasPlayer({
     const onDuration = () => { if (isFinite(v.duration)) setDuration(v.duration); };
 
     v.addEventListener('canplay',          onCanPlay);
+    v.addEventListener('loadeddata',       onLoadedData);
+    v.addEventListener('timeupdate',       onTimeUpdate);
     v.addEventListener('waiting',          onWaiting);
     v.addEventListener('playing',          onPlaying);
     v.addEventListener('pause',            onPause);
@@ -211,6 +233,8 @@ export default function PunkCanvasPlayer({
 
     return () => {
       v.removeEventListener('canplay',        onCanPlay);
+      v.removeEventListener('loadeddata',     onLoadedData);
+      v.removeEventListener('timeupdate',     onTimeUpdate);
       v.removeEventListener('waiting',        onWaiting);
       v.removeEventListener('playing',        onPlaying);
       v.removeEventListener('pause',          onPause);
@@ -370,12 +394,15 @@ export default function PunkCanvasPlayer({
       onTouchStart={resetHideTimer}
     >
 
-      {/* ── VIDEO OCULTO: Solo decodifica, nunca se muestra al usuario ── */}
+      {/* ── VIDEO OCULTO: Solo decodifica, nunca se muestra al usuario ──
+          OJO: no usar display:none — en móviles (iOS Safari, parte de Android)
+          un vídeo display:none no produce frames para drawImage. En su lugar
+          queda renderizado pero invisible: 1px, opacity 0, sin pointer events. */}
       <video
         ref={videoRef}
-        className="hidden"
+        className="absolute w-px h-px opacity-0 pointer-events-none"
         playsInline
-        preload="metadata"
+        preload="auto"
         aria-hidden="true"
         tabIndex={-1}
       />
