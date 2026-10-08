@@ -65,9 +65,9 @@ export const DEMO_RECORDS: DemoRecord[] = [
   {
     id: 'club4depo',
     title: 'CLUB DEPO — SET 04',
-    desc: 'Club Depo session — extended capture of the live rig. (54MB > 50MB Supabase free cap — pending recompression)',
+    desc: 'Club Depo session — extended capture of the live rig.',
     category: 'Shows & Workshop',
-    videoUrl: '',
+    videoUrl: vid('Club4depo.webm'),
     youtubeId: '',
   },
   {
