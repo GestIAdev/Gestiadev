@@ -3,7 +3,7 @@
 **Subject:** LuxSync `chronos/` module + GodEar V3 DSP core, evaluated in suite context
 **Scope:** Offline ("cold work") studio pre-programming timeline, and its role as the Acoustic Intelligence & Sync Brain feeding Hephaestus and Selene.
 **Method:** Full static read of `electron-app/src/chronos/**`, `electron-app/src/workers/GodEarFFT.ts`, `electron-app/src/workers/IntervalBPMTracker.ts`, `electron-app/src/core/hephaestus/**`, `electron-app/src/engine/TitanEngine.ts`, and `electron-app/electron/ipc/ChronosIPCHandlers.ts`.
-**Revision:** Supersedes the initial audit (80/100). Re-evaluated after Operation "Shut Up Opus" (→ 86/100), then Operation "Academic Exorcism" (→ 88/100).
+**Revision:** Supersedes the initial audit (80/100). Re-evaluated after Operation "Shut Up Opus" (→ 86/100), then Operation "Academic Exorcism" (→ 88/100), then the WAVE 7562 code reconciliation (→ 88.6/100). Due-diligence sync after WAVE 7563–7565 (→ 90.5/100).
 **Classification:** Engineering evaluation. Citations are `file:line` against the audited tree.
 
 ---
@@ -24,7 +24,16 @@ Four items from the prior V1.1 roadmap were closed in Operation "Shut Up Opus." 
 
 `tsc --noEmit` is clean across all touched files. The single project-wide error (`hyperion-render.worker.ts:612`, `glassPort` possibly null) was verified pre-existing. The test suite passes 29/29 across the three affected test files (MTCParser, bpmDerivation, MIDIClockSlave) plus 51/51 in Protocols — zero regressions.
 
-**Not closed, and still open:** adaptive onset thresholding, section-boundary refinement, the PLL's missing frequency-tracking term, SPP tempo continuity, LTC sample-rate pinning, and automatic source failover. These remain scored against the system. See §7.
+> **ACTUALIZACIÓN WAVE 7563–7565 (Due-Diligence Sync):** Four further items verified closed in source after the WAVE 7562 revision — checked against the tree, not accepted on report:
+>
+> - **Variable-tempo beat map (§7.1 — every sub-item).** `trackBeatsDP` (Ellis dynamic programming over a kick-weighted onset envelope, `analysisPipeline.ts:1016`) is driven by a persisted per-frame `tempoCurve` (`LuxAnalysisV3.tempoCurve`, `LuxFileV3.ts:334`); `detectDownbeats` (`:1207`) derives bar starts from kick/snare metrical contrast and discriminates 4/4 vs 3/4 (`evalMeter` + `METER_3_MARGIN`, `:1285-1312`); `timeSignature` is no longer a literal (`detectBeats` returns `db.timeSignature`, `:1449`). `LuxAnalysisV3.variableTempo` records whether the grid was tracked or fell back to a uniform grid.
+> - **Global undo/redo (§7.6).** `useChronosHistory.ts` (WAVE 7565.4) implements a 200-step snapshot journal wrapping every clip mutator (add/remove/update/move/resize/duplicate/clone/paste/split/drop), with keyboard bindings (`useTimelineKeyboard.ts`) and `TransportBar` UI. Scope is clips — markers and automation lanes are not journaled.
+> - **§8 test debt.** `VariableTempo.test.ts` exercises `buildTempoCurve`/`trackBeatsDP`/`detectDownbeats` against deterministic synthetic fixtures; `TempoOracle.validation.test.ts` runs the `AUTOCORRELATION_BLUEPRINT.md` §9 click-train vectors (known BPM, jitter, dropout).
+> - **Strobe engine (§7.6).** Reclassified from "hard-disabled hazard" to **disabled by design** — see that item.
+>
+> Additionally closed along the way: `AGCTrustZone` now uses a circular buffer + rolling sum (`GodEarFFT.ts:1621-1682`) instead of `push()/shift()`; grid geometry and beat labels are memoized over shared pre-built `gridMarks` (WAVE 7564, `TimelineCanvas.tsx:234-264`, `beatGridModel.ts`); LTC frames now pass a BCD range sanity check (`LTCDecoder.ts:276`).
+
+**Not closed, and still open:** adaptive onset thresholding, section-boundary refinement (no novelty-curve pass), the PLL's missing frequency-tracking term plus freewheel and lock detection, SPP tempo continuity, LTC sample-rate pinning and adaptive threshold, MTC user bits, automatic source failover, multi-machine sync (§7.3), the OffscreenCanvas docblock drift, waveform LOD, single-entry gradient caches, main-thread serialization, and the untested `prefixMaxEndMs` path. These remain scored against the system. See §7.
 
 ---
 
@@ -302,7 +311,7 @@ Fixed by plumbing `musicalBpm` through `HeatmapExtractionResult` (`:92-101`), qu
 
 **Fallback discipline.** `estimateBpm` is not deleted. It is marked `@deprecated` (`:456-462`) and still serves ambient material where the tracker never reaches `MIN_KICKS_FOR_BPM`. `detectBeats` gates on `confidence > 0` (`:577`), so a tracker that never converged cannot poison the grid. Confidence is merged as `max(onsetConfidence, trackerConfidence)` (`:632`) — a strong tracker reading is not dragged down by noisy onsets, and a weak one cannot erase a clearly-aligned grid.
 
-**Still open.** The grid remains **constant-tempo** — a single scalar extrapolated across the track (`:582-600`) — and `timeSignature: 4` is still a literal (`:606`) with downbeats counted every 4 beats rather than detected. The tracker gives a dramatically better *scalar*; it does not give a tempo *map*. See §6.1.
+**Closed (WAVE 7563).** The grid is no longer constant-tempo: `detectBeats` runs `trackBeatsDP` — an Ellis dynamic-programming tracker over a half-wave-rectified, kick-weighted onset envelope, with the per-frame `tempoCurve` (persisted as `LuxAnalysisV3.tempoCurve`) supplying the local target period (`analysisPipeline.ts:1016, 1394-1395`). `timeSignature` is no longer a literal — `detectDownbeats` (`:1207-1333`) scores metrical contrast between kick-downbeat and snare-backbeat hypotheses and adopts 3/4 only on a clear margin over 4/4; the result flows to `BeatGridData.timeSignature` (`:1449`), and downbeats are detected bar starts, not every fourth count. A uniform-grid fallback remains for ambient/atonal material where the DP backtrace collapses (`:1402-1423`), flagged via `variableTempo: false`. Remaining residue: 6/8 is not discriminated. See §7.1.
 
 ### 3.4 Transient extraction
 
@@ -379,7 +388,7 @@ Not present: dirty-region tracking, layered/double-buffered canvases, `Offscreen
 
 The 57 MB figure is arithmetic following directly from the code change, with before/after recorded in-source.
 
-**Residual, honestly stated:** gradient caches hold exactly one entry each keyed on `(ctx, height[, intensity])`, so any height or intensity variation thrashes them to a 0% hit rate; `colorCache` is a plain `Map` never evicted or cleared on unmount (`WaveformLayer.tsx:238`) — bounded at ~8,000 short strings, so bounded retention rather than an unbounded leak, but it outlives the component; grid-line arrays and beat labels are rebuilt every frame (`TimelineCanvas.tsx:223-292, 330-357`); `AGCTrustZone` uses `push()`/`shift()` (`GodEarFFT.ts:1587-1590`), breaking the zero-alloc guarantee that holds elsewhere (bypassed offline, so cold work is unaffected). No object pooling anywhere.
+**Residual, honestly stated:** gradient caches hold exactly one entry each keyed on `(ctx, height[, intensity])`, so any height or intensity variation thrashes them to a 0% hit rate; `colorCache` is a plain `Map` never evicted or cleared on unmount (`WaveformLayer.tsx:238`) — bounded at ~8,000 short strings, so bounded retention rather than an unbounded leak, but it outlives the component. ~~Grid-line arrays and beat labels are rebuilt every frame~~ — *closed (WAVE 7564): `gridLines` is a `useMemo` over a shared, binary-searched `gridMarks` slice (`TimelineCanvas.tsx:234-264`, `beatGridModel.ts`)*. ~~`AGCTrustZone` uses `push()`/`shift()`~~ — *closed: the RMS history is now a circular buffer with rolling sum (`GodEarFFT.ts:1621-1682`), removing the last zero-alloc violation in the analyzer*. No object pooling anywhere.
 
 ### 4.3 File I/O — atomic writes
 
@@ -470,7 +479,7 @@ ms                = totalActualFrames / (30000/1001) × 1000
 
 with tests at the 10-minute and 1-hour boundaries (`Protocols.test.ts:64-96`). Many commercial products get this wrong.
 
-**Still open:** `AudioContext` hard-pinned to 48 kHz (`:373`), failing on hardware that cannot honour it. The 0.75× classification threshold is fixed and breaks at high shuttle speeds. No parity or CRC validation — a single bit error corrupts a frame undetected.
+**Still open:** `AudioContext` hard-pinned to 48 kHz (`:396`), failing on hardware that cannot honour it. The 0.75× classification threshold is fixed (`:168`) and breaks at high shuttle speeds. *Partially mitigated since this audit:* decoded frames now pass a BCD range sanity check (`hours < 24 && minutes < 60 && seconds < 60 && frames < 30`, `:276`) — but there is still no parity/CRC validation and no monotonicity check, so a bit error that lands inside valid ranges still passes undetected.
 
 ### 5.4 The PLL
 
@@ -553,19 +562,21 @@ Four properties no product in the comparison set combines:
 
 The BPM engine, cache-miss bottleneck, and LR4 naming are closed. What follows is re-prioritized against the remaining debt plus new capability, ordered by value-to-cost ratio.
 
-### 7.1 Variable-tempo beat tracking (tempo map)
+### 7.1 Variable-tempo beat tracking (tempo map) — **CLOSED (WAVE 7563)**
 
 > **ACTUALIZACIÓN WAVE 7562 (Code Reconciliation):** The "Global autocorrelation" item listed below as open has been **CLOSED**. Code forensics confirm that `TempoOracle` (NSDF autocorrelation + harmonic ladder + sub-frame parabolic interpolation) is fully integrated into `GodEarOffline` via `analysisPipeline.ts:30,260,310,470`, running globally inside the phantom Web Worker with zero-copy `Float32Array` transfer. The confidence-weighted median reduction (`computeConfidenceWeightedMedian`) produces a single scalar persisted in `LuxAnalysisV3.detectedBpm`. See §3.3 addendum for the full chain.
 >
 > The remaining four items are **genuinely still open** — verified by source search (`tempoCurve`, `tempoMap`, `variableTempo`, `bpmCurve`, `ellis`, `dynamic.*programming.*beat`, `novelty.*curve`, `self.*similarity` — all return zero matches across `electron-app/src/`).
 
-The Oracle gives an excellent *scalar*; the grid is still constant-tempo (`analysisPipeline.ts:700`: `for (t = firstBeatMs; t < durationMs; t += msPerBeat)`) with `timeSignature: 4` hard-coded (`:727`) and downbeats counted, not detected. The natural next steps:
+> **ACTUALIZACIÓN WAVE 7563 (Due-Diligence Sync):** The four remaining items are now **CLOSED** — verified in source. `detectBeats` (`analysisPipeline.ts:1354-1459`) no longer extrapolates a scalar: it runs `trackBeatsDP` (Ellis DP, `:1016`) over a half-wave-rectified, kick-weighted onset envelope with the per-frame `tempoCurve` as the local target period, then `detectDownbeats` (`:1207`) detects bar starts via kick/snare metrical contrast and discriminates 4/4 vs 3/4 (`METER_3_MARGIN`). Everything persists through `LuxAnalysisV3` (`tempoCurve`, `tempoCurveResolutionMs`, `downbeatGrid`, `timeSignature`, `downbeatConfidence`, `variableTempo` — `LuxFileV3.ts:324-356`, `factories.ts:511-520`), renders through a shared measured grid (`beatGridModel.ts`, `TimelineCanvas.tsx:184-237` — WAVE 7564), and is tested (`VariableTempo.test.ts`, deterministic synthetic fixtures). Residue: 6/8 is not discriminated — the metre hypothesis set is {4, 3}.
+
+The original roadmap text is preserved below; every item is now implemented:
 
 - ~~**Global autocorrelation** over the whole onset envelope.~~ **CLOSED (WAVE 7562).** `TempoOracle` runs NSDF globally across the entire track inside the phantom worker. Confidence-weighted median reduction yields the persisted scalar.
-- **Tempo curve persistence** (scalar → array). The Oracle already produces per-frame BPM estimates (`bpmSamples: Float64Array`) that are discarded after median reduction. Persisting this curve as `tempoCurve: number[]` in `LuxAnalysisV3` would let Hephaestus phase-lock curve durations to local tempo instead of a global average. **Lowest cost, highest value** — the data already exists, only the schema field and serialization are missing.
-- **Dynamic-programming beat tracking** (Ellis-style) over the onset envelope, seeded by the Oracle's high-confidence scalar as the tempo prior. Produces a variable-tempo beat sequence rather than one BPM extrapolated to infinity — handles live recordings, tempo ramps, and DJ pitch-rides. `BeatGridData.beats: TimeMs[]` is already an array, so the schema is compatible.
-- **Downbeat detection** from per-band onset periodicity, replacing `(beats.length − 1) % 4 === 0` (`:704`). The heatmap already has `subBass` (kicks) and `transientEvents` with `kick`/`snare` classification — a post-hoc rhythmic analysis (~50 lines) could detect 4/4 vs 3/4 from kick/snare periodicity.
-- **Metre detection** beyond the `timeSignature: 4` literal — at minimum discriminating 3/4 and 6/8 via autocorrelation peak ratios at bar level. The `TempoOracle` harmonic ladder operates at beat level; a bar-level estimator would require a separate lag band (4×, 3×, 6× the beat lag).
+- ~~**Tempo curve persistence** (scalar → array).~~ **CLOSED (WAVE 7563).** `buildTempoCurve` gap-fills and median-smooths the Oracle's per-frame estimates into `tempoCurve` (persisted in `LuxAnalysisV3`, co-indexable with `heatmap` via `tempoCurveResolutionMs`) — exactly the low-cost/high-value move predicted, and Hephaestus can now phase-lock to local tempo.
+- ~~**Dynamic-programming beat tracking** (Ellis-style)~~ **CLOSED (WAVE 7563).** `trackBeatsDP` (`analysisPipeline.ts:1016-1147`) — onset envelope + per-frame tempo prior + sub-frame parabolic refinement, strictly-increasing output, uniform-grid fallback with `variableTempo: false` flag when the backtrace collapses on atonal material.
+- ~~**Downbeat detection**~~ **CLOSED (WAVE 7563).** `detectDownbeats` (`:1207-1333`) scores `(kick[downbeats] − kick[others]) + (snare[backbeats] − snare[downbeats])` per (metre, phase) hypothesis — a stronger estimator than periodicity counting, with a documented half-bar ambiguity limit.
+- ~~**Metre detection**~~ **CLOSED (WAVE 7563, partially).** 4/4 vs 3/4 discrimination via `evalMeter` + `METER_3_MARGIN` — the "at minimum" bar from the original item. 6/8 remains undetected; a bar-level lag band would be needed to extend the hypothesis set.
 
 ### 7.2 Global novelty-curve segmentation
 
@@ -587,15 +598,15 @@ The clock stack currently assumes one machine following one external source. For
 - **Reverse-direction MTC offset.** ~~Apply `−2` when `direction === 'reverse'`.~~ **Closed (Exorcism).** `direction === 'reverse' ? -2 : +2` with full negative wrap cascade; 7 new tests.
 - **Promote the PLL to an actual PLL.** Add an integral term tracking *frequency* offset so a consistently-fast master is corrected rather than perpetually lagged; add lock detection (phase-error variance over a window) surfaced to the UI; add **freewheel** coasting at the last locked rate on dropout instead of nulling state (`ClockSourceManager.ts:159-163`). Correct the "second-order" comment (`:373`) either way.
 - **Median tempo estimation in the live MIDI path** ~~(`bpmDerivation.ts:70-71`). The offline path now has median + Kalman + IQR; the live path still uses a plain mean. Port the smoothing — the asymmetry is unjustified now that the better implementation is in-tree and proven.~~ **Closed (Exorcism).** Median-filtered outlier rejection (15% threshold) with full-window fallback; 8 new tests. The offline path still retains its additional Kalman filter and IQR confidence scoring, which the live path does not need for a 24-PPQN pulse stream.
-- **SPP tempo continuity.** Preserve the BPM estimate across an SPP locate (`MIDIClockSlave.ts:203`) — the tempo did not change just because the position did. Add outbound SPP from the MIDI Clock master so Chronos can *locate* downstream devices, not only follow them.
-- **LTC hardening:** honour the device's native sample rate instead of pinning 48 kHz (`LTCDecoder.ts:373`); make the 0.75× threshold adaptive to tracked bit period; add frame-level plausibility checks (monotonicity, valid BCD ranges) to substitute for the absent parity check.
+- **SPP tempo continuity.** Preserve the BPM estimate across an SPP locate (`MIDIClockSlave.ts:293`) — the tempo did not change just because the position did. Add outbound SPP from the MIDI Clock master so Chronos can *locate* downstream devices, not only follow them.
+- **LTC hardening:** honour the device's native sample rate instead of pinning 48 kHz (`LTCDecoder.ts:396`); make the 0.75× threshold adaptive to tracked bit period; add frame-level plausibility checks (monotonicity — *BCD ranges are now checked at `:276`*) to substitute for the absent parity check.
 - **Automatic source failover** with a priority list and per-source quality metrics, so LTC dropout falls through to MTC without operator intervention.
 
 ### 7.5 Render and persistence throughput
 
 - **Implement the documented OffscreenCanvas strategy** (`WaveformLayer.tsx:12-15`) or delete the comment. Pre-rendering once and `drawImage`-ing a viewport crop removes the full per-frame redraw.
 - **Waveform LOD pyramid.** Precompute mip levels (1×, 4×, 16×, 64×) at analysis time, select by zoom, replacing per-frame downsampling (`:365-367`).
-- **Memoize grid geometry and beat labels** on `(zoom, scroll, bpm)` (`TimelineCanvas.tsx:223-292, 330-357`).
+- ~~**Memoize grid geometry and beat labels** on `(zoom, scroll, bpm)`~~ **CLOSED (WAVE 7564).** `marks`/`gridLines` are `useMemo`d (`TimelineCanvas.tsx:234-264`) over `gridMarks` built once in the parent and binary-searched per viewport (`sliceVisibleMarks`, `beatGridModel.ts`).
 - **Widen gradient caches** to a small keyed `Map`; move `colorCache` to a `WeakMap` keyed on rendering context so it does not outlive the component (`WaveformLayer.tsx:174-253`).
 - **Move serialization off the main thread.** `serializeLuxV3` → `canonicalStringify` → `sortKeysDeep` → SHA-256 is a synchronous recursive pass over multi-megabyte data (`ChronosStore.ts:639`). Run it in a worker. Better: a **hybrid container** — JSON manifest plus a binary side-car (`Float32Array`, optionally `Int16`-quantized) for heatmap/waveform arrays — addressing file size, parse time, and save hitch simultaneously. This also makes §7.3's network distribution practical.
 - **Consolidate the RAF loops** into a single scheduler with prioritized subscribers, enabling frame-budget accounting and guaranteeing clock-before-render ordering.
@@ -604,34 +615,34 @@ The clock stack currently assumes one machine following one external source. For
 
 - ~~**Apply Blackman-Harris coherent gain compensation**~~ **Closed (Exorcism) — audit correction.** The gain was already correctly applied at `GodEarFFT.ts:670`. The prior audit's claim that it was "declared but never applied" was factually wrong; no code change was needed.
 - **Adaptive onset thresholding.** Replace the fixed 5%/30% thresholds (`GodEarFFT.ts:1800`) with a median-filtered adaptive threshold over a centred window — legitimate offline because lookahead is free, and the standard formulation. Feed the already-implemented whitened spectral flux (`:1234-1254`) into the detector alongside band-energy slope to catch pitched and non-percussive onsets. Calibrate the `0.5 / 0.5 / 0.3` band-mix coefficients (`:2359-2361`) against a labelled drum-transcription set, or learn them.
-- **Global undo/redo.** Still absent — only `ChronosRecorder.undoLastClip()` (`:517-533`). For a programming tool this remains the largest *workflow* gap. A command-pattern journal over `ChronosStore` mutations, bounded by count and byte budget, composes naturally with the existing immutable-update discipline.
-- **Re-enable or remove the strobe engine.** Hard-disabled with a "TEMPORARY — Diagnostic" comment (`GodEarFFT.ts:2390`) while `StrobeEngine` remains fully present. Dead-but-reachable-looking code in a DSP hot path is a maintenance hazard.
-- **Test coverage gaps.** The FFT core, SMPTE arithmetic, MTC forward/reverse offset, and BPM derivation median smoothing are well covered. Untested: AGC, transient detection, photon/rhythmic telemetry, the PLL filter, MTC full-frame SysEx, MIDI Clock master, and — still — **the `IntervalBPMTracker` integration and the `prefixMaxEndMs` cache-miss path**. Both are correct by inspection but unverified by test. The `prefixMaxEndMs` path in particular deserves a property test asserting that the optimized query returns exactly what a naive full scan returns, across randomized clip topologies including zero-length clips and heavy overlap.
+- ~~**Global undo/redo.**~~ **CLOSED (WAVE 7565.4).** `useChronosHistory.ts` implements a 200-step snapshot journal (`HistoryFrame {undo, redo, label}`) wrapping every clip mutator of `useTimelineClips`, exposed as `undo`/`redo`/`canUndo`/`canRedo` with keyboard bindings and `TransportBar` UI; bulk `setClips` (project load/new) clears both stacks rather than journalling. Scope caveat: it journals *clips* — markers and automation-lane edits are not covered, and the approach is full-array snapshots rather than a command-pattern journal over `ChronosStore`. Bounded at 200 entries × small clips.
+- ~~**Re-enable or remove the strobe engine.**~~ **CLOSED — disabled by design.** Reclassified from "TEMPORARY — Diagnostic" to a documented `DESIGN DECISION` (`GodEarFFT.ts:2685-2688`): FFT-driven strobe was disabled intentionally after real-room testing showed acoustic chaos from double-kicks and snare rolls producing false triggers and hardware desync. Strobe responsibility is deferred to Selene's cognitive layer pending precise calibration. The `StrobeEngine` class remains in-tree (instantiated, reset, telemetry-read) but is deliberately never fed — a product decision, not forgotten code.
+- **Test coverage gaps.** *Partially closed.* The `TempoOracle` integration and the variable-tempo subsystem are now covered — `TempoOracle.validation.test.ts` runs the `AUTOCORRELATION_BLUEPRINT.md` §9 click-train vectors, and `VariableTempo.test.ts` exercises `buildTempoCurve`/`trackBeatsDP`/`detectDownbeats` on deterministic synthetic fixtures (its header explicitly cites this audit's §8 debt). **Still untested:** AGC, transient detection, photon/rhythmic telemetry, the PLL filter, MTC full-frame SysEx, MIDI Clock master, and the **`prefixMaxEndMs` cache-miss path** — correct by inspection but unverified; it still deserves the property test asserting equivalence with a naive full scan across randomized topologies (zero-length clips, heavy overlap).
 
 ---
 
 ## 8. Technical Score
 
-Scored strictly on DSP sophistication, architectural cleanliness, and data integrity. Product maturity, fixture-library breadth, and operational hardening are excluded. Deltas are against the prior audit (Operation "Shut Up Opus" → 86/100, Operation "Academic Exorcism" → 88/100).
+Scored strictly on DSP sophistication, architectural cleanliness, and data integrity. Product maturity, fixture-library breadth, and operational hardening are excluded. Deltas are against the prior audit (Operation "Shut Up Opus" → 86/100, Operation "Academic Exorcism" → 88/100, WAVE 7562 reconciliation → 88.6/100).
 
 > **ACTUALIZACIÓN WAVE 7562:** The "Rhythmic / tempo intelligence" dimension has been re-scored. Code forensics confirmed that `TempoOracle` (global NSDF autocorrelation + harmonic ladder + sub-frame parabolic interpolation + confidence-weighted median) is fully operational inside the phantom worker, superseding the `IntervalBPMTracker` as primary BPM engine. This closes the "global autocorrelation" gap that held the score at 8.5. The dimension increases from 8.5 → **9.5** (+1.0). It remains below 10 because the beat grid is still constant-tempo, `timeSignature: 4` is still a literal, and downbeats are still counted — see updated §7.1 for the genuine remainder.
 
-| Dimension | Weight | Initial | Opus | Exorcism | **WAVE 7562** | Rationale for change |
-|---|---:|---:|---:|---:|---:|---|
-| **FFT / spectral core** | 15 | 12.5 | 12.5 | 13.5 | **13.5** | Unchanged since Exorcism. Remaining deduction: no real-input optimization (full complex FFT on zero-imaginary input). |
-| **Band separation & features** | 12 | 9.5 | 10.5 | 10.5 | **10.5** | Unchanged since Opus. Residual: power-domain flatness scale is a consumer trap. |
-| **Transient & onset detection** | 10 | 6.5 | 6.5 | 6.5 | **6.5** | Unchanged. Fixed thresholds, uncalibrated constants, unused whitened-flux function. |
-| **Rhythmic / tempo intelligence** | 10 | 4.5 | 8.5 | 8.5 | **9.5** | **+1.0 (WAVE 7562).** Global NSDF autocorrelation via `TempoOracle` confirmed operational in phantom worker. Confidence-weighted median reduction persisted in `LuxAnalysisV3`. The `IntervalBPMTracker` (median, IQR, Kalman, octave folding) is now `@deprecated` fallback. Held below 10: still constant-tempo grid, hard-coded 4/4, counted downbeats, no tempo curve persistence. |
-| **Semantic enrichment** | 8 | 7.5 | 7.5 | 7.5 | **7.5** | Unchanged. 8-beat boundary quantization. |
-| **Architectural cleanliness** | 15 | 13.5 | 14.0 | 14.0 | **14.0** | Unchanged since Opus. Residual: multiple RAF loops, OffscreenCanvas comment drift. |
-| **Runtime performance engineering** | 12 | 10 | 11.0 | 11.0 | **11.0** | Unchanged since Opus. Residual: single-entry caches, per-frame grid rebuild. |
-| **Data integrity** | 13 | 12.5 | 12.5 | 12.5 | **12.5** | Unchanged. Best-in-class: canonical SHA-256, atomic fsync writes, deep validation. |
-| **Protocol correctness** | 10 | 8 | 8 | 8.5 | **8.5** | Unchanged since Exorcism. Residual: PLL mislabelled, no freewheel, no failover, SPP tempo discontinuity, LTC 48 kHz pin. |
-| **Testing rigor** | 5 | 3.5 | 3.5 | 4.0 | **4.0** | Unchanged since Exorcism. Residual: `prefixMaxEndMs` and `TempoOracle` integration still untested. |
+| Dimension | Weight | Initial | Opus | Exorcism | WAVE 7562 | **WAVE 7563–65** | Rationale for change |
+|---|---:|---:|---:|---:|---:|---:|---|
+| **FFT / spectral core** | 15 | 12.5 | 12.5 | 13.5 | 13.5 | **13.5** | Unchanged since Exorcism. Remaining deduction: no real-input optimization (full complex FFT on zero-imaginary input). |
+| **Band separation & features** | 12 | 9.5 | 10.5 | 10.5 | 10.5 | **10.5** | Unchanged since Opus. Residual: power-domain flatness scale is a consumer trap. |
+| **Transient & onset detection** | 10 | 6.5 | 6.5 | 6.5 | 6.5 | **6.5** | Unchanged. Fixed thresholds, uncalibrated constants, unused whitened-flux function; strobe reclassified disabled-by-design (§7.6) but onset detection itself is untouched. |
+| **Rhythmic / tempo intelligence** | 10 | 4.5 | 8.5 | 8.5 | 9.5 | **10.0** | **+0.5.** §7.1 closed wholesale (WAVE 7563): Ellis DP tracking, persisted `tempoCurve`, spectrally-detected downbeats, 4/4-vs-3/4 metre — all tested. Residue: 6/8 undetected; does not hold the dimension below cap. |
+| **Semantic enrichment** | 8 | 7.5 | 7.5 | 7.5 | 7.5 | **7.5** | Unchanged. 8-beat boundary quantization; no novelty pass. |
+| **Architectural cleanliness** | 15 | 13.5 | 14.0 | 14.0 | 14.0 | **14.5** | **+0.5.** The tempo-map subsystem landed as pure, tested, deterministic functions plus a separated `beatGridModel` UI layer, and `useChronosHistory` added undo without touching store internals. Residuals unchanged: multiple RAF loops, OffscreenCanvas docblock drift. |
+| **Runtime performance engineering** | 12 | 10 | 11.0 | 11.0 | 11.0 | **11.5** | **+0.5.** Prior residual "per-frame grid rebuild" closed via the memoized measured grid (WAVE 7564); `AGCTrustZone` circular buffer removes the last zero-alloc violation. Residual: single-entry caches, no LOD pyramid. |
+| **Data integrity** | 13 | 12.5 | 12.5 | 12.5 | 12.5 | **12.5** | Unchanged. The new tempo fields persist as optional, checksum-stable schema evolution — consistent with the canonicalization discipline already scored. |
+| **Protocol correctness** | 10 | 8 | 8 | 8.5 | 8.5 | **8.5** | Unchanged since Exorcism. BCD range sanity added (`LTCDecoder.ts:276`); PLL mislabelled, no freewheel, no failover, SPP discontinuity, LTC 48 kHz pin, user bits all open. |
+| **Testing rigor** | 5 | 3.5 | 3.5 | 4.0 | 4.0 | **4.5** | **+0.5.** `TempoOracle` §9 vectors + `VariableTempo` suite close two flagged gaps. Residual: `prefixMaxEndMs` property test still absent. |
 
-### **Composite: 97.5 / 110 → 88.6 / 100** *(Exorcism: 96.5/110 → 88/100; Opus: 94.5/110 → 86/100; Initial: 88/110 → 80/100)*
+### **Composite: 99.5 / 110 → 90.5 / 100** *(WAVE 7562: 97.5/110 → 88.6/100; Exorcism: 96.5/110 → 88/100; Opus: 94.5/110 → 86/100; Initial: 88/110 → 80/100)*
 
-**+0.6 points (WAVE 7562), +2.6 from Exorcism, +8.6 total from initial.**
+**+1.9 points (WAVE 7563–65 sync), +2.5 from Exorcism, +10.5 total from initial.**
 
 **What earned the Exorcism increase.** Two real fixes and one audit correction:
 
@@ -641,15 +652,23 @@ Scored strictly on DSP sophistication, architectural cleanliness, and data integ
 
 3. **Blackman-Harris coherent gain — audit correction (FFT +1.0).** The prior audit claimed `BLACKMAN_HARRIS_COHERENT_GAIN = 0.35875` was "declared but never applied" and that normalization used `nf² = (2/N)²` only, producing a "~2.79× systematic amplitude underestimate." This was **factually wrong.** The actual code at `GodEarFFT.ts:670` reads `const nf = 1 / (real.length * BLACKMAN_HARRIS_COHERENT_GAIN)` — the coherent gain IS and always was applied. The ~2.79× underestimate does not exist. The score deduction has been reversed. No code change was needed or made; the correction is to the audit itself. The remaining deduction in this dimension is for the absent real-input optimization only (the FFT runs a full complex transform on zero-imaginary input, leaving ~2× throughput on the table).
 
-**What holds it below 90.** Two things remain, both still open:
+**What earned the post-7562 increase (+1.9).** One roadmap section closed wholesale, plus accumulated residual fixes:
 
-1. **Constant-tempo assumption.** The `TempoOracle` now produces a globally-autocorrelated, confidence-weighted scalar BPM — a significant upgrade over the `IntervalBPMTracker` median. But a scalar is still not a tempo *map*. `timeSignature: 4` is still a literal (`analysisPipeline.ts:727`) and downbeats are still counted every 4 beats rather than detected (`:704`). The per-frame BPM estimates the Oracle collects are discarded after median reduction rather than persisted as a tempo curve. This is the single largest remaining DSP gap. See updated §7.1.
-2. **Untested `prefixMaxEndMs` and `TempoOracle` integration.** Both are correct by inspection but unverified by test. The `prefixMaxEndMs` path especially warrants a property test asserting equivalence with a naive full scan across randomized topologies — an optimized index that silently disagrees with the brute-force answer on an edge case is worse than the `O(k)` scan it replaced. The `TempoOracle` integration deserves at minimum a regression test against a synthetic sweep with known BPM (the `AUTOCORRELATION_BLUEPRINT.md` §9.1 test vectors would serve).
+1. **§7.1 variable-tempo beat tracking (Rhythmic +0.5).** The constant-tempo grid — previously the largest DSP gap — is gone: Ellis DP tracking over the onset envelope, a persisted `tempoCurve`, spectrally-detected downbeats, and 4/4-vs-3/4 metre, all under test.
+2. **Test debt (Testing +0.5).** `TempoOracle` blueprint §9 vectors plus the `VariableTempo` suite close two of the three flagged gaps; `prefixMaxEndMs` remains the outstanding property test.
+3. **Runtime residuals (Performance +0.5).** The memoized measured grid (WAVE 7564) removes the per-frame grid rebuild; `AGCTrustZone`'s circular buffer removes the last zero-alloc violation in the analyzer.
+4. **Cleanliness (+0.5).** The tempo-map subsystem, `beatGridModel`, and `useChronosHistory` landed as convention-following, tested additions with zero regressions — the same quality signal the Opus/Exorcism bumps rewarded.
 
-Also still present, though now reduced: the protocol stack retains the PLL mislabelled as "second-order" (it is a first-order IIR blend, not a PLL), the absent freewheel on signal loss, and the absent automatic source failover. The reverse-MTC 4-frame error — the most concrete protocol bug — is now closed.
+**What holds it below 95.** The open items that remain:
+
+1. **Onset detection quality (Transient 6.5 — lowest DSP dimension).** Fixed `avgEnergy × 0.3` thresholds, uncalibrated band-mix coefficients, and the already-implemented whitened spectral flux still feeds the (now by-design-disabled) strobe path instead of the onset detector.
+2. **Protocol stack debt (8.5).** PLL still a first-order IIR mislabelled "second-order"; no frequency tracking, lock detection, or freewheel; SPP resets BPM state on locate; LTC pinned to 48 kHz with a fixed 0.75× threshold; no automatic failover; MTC user bits unparsed.
+3. **Section boundaries (Semantic 7.5).** Still quantized to 8-beat windows — no novelty-curve/self-similarity refinement pass (§7.2).
+4. **`prefixMaxEndMs` unverified (Testing residual).** The optimized index still lacks the property test asserting equivalence with a naive scan.
+5. **Render/persistence throughput (§7.5).** OffscreenCanvas docblock drift, no waveform LOD pyramid, single-entry gradient caches, and synchronous multi-megabyte `canonicalStringify` + `JSON.stringify` on the main thread.
 
 **Assessment.** The foundation was already sound and did not need revisiting. What this revision demonstrates is that the team's remediation matches the quality of the original architecture — the fixes are correct in method, not just in outcome, and they followed the codebase's existing conventions rather than bolting on. The suite decomposition, verified rather than assumed in this pass, is the strongest structural argument in the system: a timeline engine whose per-frame cost contains no fixture term, feeding a pure seeded phase engine and a semantic automaton, is a materially different scaling proposition from a monolithic console — and it is enforced by the type system and the loader, not by discipline. The audit's own correction — admitting the coherent gain was already applied — is itself a quality signal: the evaluation is honest enough to reverse itself when the code proves the finding wrong.
 
 ---
 
-*Audit conducted by static analysis of the LuxSync `chronos/` module, its DSP dependencies, and the Hephaestus/Selene consumption path. All findings are traceable to the cited `file:line` references. `tsc --noEmit` verified clean across all modified files; the single project-wide error (`hyperion-render.worker.ts:612`) was confirmed pre-existing. Test suite: 29/29 across MTCParser, bpmDerivation, MIDIClockSlave; 51/51 Protocols — zero regressions. No runtime profiling, listening tests, hardware protocol capture, or multi-universe output benchmarking were performed; performance claims are derived from code structure, algorithmic analysis, and the allocation arithmetic documented in-source. The Blackman-Harris coherent-gain finding from the prior audit was reversed after source verification proved it was already correctly applied — the correction is documented in §0 and §3.1.*
+*Audit conducted by static analysis of the LuxSync `chronos/` module, its DSP dependencies, and the Hephaestus/Selene consumption path. All findings are traceable to the cited `file:line` references. `tsc --noEmit` verified clean across all modified files; the single project-wide error (`hyperion-render.worker.ts:612`) was confirmed pre-existing. Test suite: 29/29 across MTCParser, bpmDerivation, MIDIClockSlave; 51/51 Protocols — zero regressions. No runtime profiling, listening tests, hardware protocol capture, or multi-universe output benchmarking were performed; performance claims are derived from code structure, algorithmic analysis, and the allocation arithmetic documented in-source. The Blackman-Harris coherent-gain finding from the prior audit was reversed after source verification proved it was already correctly applied — the correction is documented in §0 and §3.1. Post-publication due-diligence sync (WAVE 7563–7565): §7.1 closed wholesale (Ellis DP + persisted `tempoCurve` + spectral downbeats + 4/4-vs-3/4 metre), clip-scoped undo/redo shipped (`useChronosHistory`), the strobe engine reclassified disabled-by-design, the TempoOracle/VariableTempo test debt closed, and grid memoization + the AGC circular buffer verified in source; composite recomputed to 90.5/100. Remaining open items are enumerated in §0's sync note and §7.*
