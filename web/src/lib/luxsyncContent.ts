@@ -20,10 +20,10 @@ export interface DemoRecord {
   youtubeId: string;
 }
 
-// Supabase Storage public base — all 17 videos live under <bucket>/<category-folder>/<file>
+// Supabase Storage public base — all videos live under videos1/Shows & workshop/
 const SB_STORAGE =
-  'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1';
-const vid = (path: string) => `${SB_STORAGE}/${path}`;
+  'https://frwoyrwvlxxjfuqvdsyw.supabase.co/storage/v1/object/public/videos1/Shows%20&%20workshop';
+const vid = (file: string) => `${SB_STORAGE}/${file}`;
 
 export interface AuditDoc {
   id: string;
@@ -43,7 +43,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'CLUB DEPO — SET 01',
     desc: 'Live club recording — LuxSync driving the house rig in real time.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/club1depo.webm'),
+    videoUrl: vid('Club1depo.webm'),
     youtubeId: '',
   },
   {
@@ -51,7 +51,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'CLUB DEPO — SET 02',
     desc: 'Club Depo session — second cut, full DMX automation.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/club2depo.webm'),
+    videoUrl: vid('Club2depo.webm'),
     youtubeId: '',
   },
   {
@@ -59,7 +59,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'CLUB DEPO — SET 03',
     desc: 'Club Depo session — third cut, live fixture output.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/club3depo.webm'),
+    videoUrl: vid('Club3depo.webm'),
     youtubeId: '',
   },
   {
@@ -67,7 +67,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'CLUB DEPO — SET 04',
     desc: 'Club Depo session — extended capture of the live rig.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/club4depo.webm'),
+    videoUrl: vid('Club4depo.webm'),
     youtubeId: '',
   },
   {
@@ -75,7 +75,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'INSIDE THE CABIN',
     desc: 'Booth POV — live LuxSync console operation during a set.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/insidecabin1.webm'),
+    videoUrl: vid('Insidecabin1.webm'),
     youtubeId: '',
   },
   {
@@ -83,7 +83,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'LATINO NIGHT — DEPO',
     desc: 'Latin-session club capture — LuxSync running the full rig.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/latino1depo.webm'),
+    videoUrl: vid('Latino1depo.webm'),
     youtubeId: '',
   },
   {
@@ -91,7 +91,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'OPERATOR POV 01',
     desc: 'Hands-on footage of the LuxSync controller in a live show.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/operator1.webm'),
+    videoUrl: vid('Operator1.webm'),
     youtubeId: '',
   },
   {
@@ -99,7 +99,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'RAVEX — DEPO 01',
     desc: 'RaveX event capture — strobe and energy cues under LuxSync.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/ravex1depo.webm'),
+    videoUrl: vid('Ravex1depo.webm'),
     youtubeId: '',
   },
   {
@@ -107,7 +107,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'RAVEX 41 — CUT A',
     desc: 'RaveX warehouse session — live fixture output.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/ravex41.webm'),
+    videoUrl: vid('Ravex41.webm'),
     youtubeId: '',
   },
   {
@@ -115,7 +115,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'RAVEX 41 — CUT B',
     desc: 'Second angle of the RaveX 41 set.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/ravex41-2.webm'),
+    videoUrl: vid('Ravex41%202.webm'),
     youtubeId: '',
   },
   {
@@ -123,7 +123,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'RAVEX 71',
     desc: 'RaveX series — live show capture, full rig control.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/ravex71.webm'),
+    videoUrl: vid('Ravex71.webm'),
     youtubeId: '',
   },
   {
@@ -131,7 +131,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'RAVEX — POP TOSCANA',
     desc: 'RaveX event at Pop Toscana — LuxSync on the house rig.',
     category: 'Shows & Workshop',
-    videoUrl: vid('shows-workshop/ravexpoptoscana.webm'),
+    videoUrl: vid('Ravexpoptoscana.webm'),
     youtubeId: '',
   },
   // ── Presentations — OBS module & workflow walkthroughs ──
@@ -140,7 +140,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'SELENE — LATINO SET 01',
     desc: 'Selene cognitive layer driving a latin set — OBS capture.',
     category: 'Presentations',
-    videoUrl: vid('presentations/selenelatino1.webm'),
+    videoUrl: vid('Selenelatino1.webm'),
     youtubeId: '',
   },
   {
@@ -148,7 +148,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'SELENE — LATINO SET 02',
     desc: 'Selene on a latin session — decision engine in real time.',
     category: 'Presentations',
-    videoUrl: vid('presentations/selenelatino2.webm'),
+    videoUrl: vid('Selenelatino2.webm'),
     youtubeId: '',
   },
   {
@@ -156,7 +156,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'SELENE — LATINO SET 04',
     desc: 'Extended Selene capture — latin set, autonomous cues.',
     category: 'Presentations',
-    videoUrl: vid('presentations/selenelatino4.webm'),
+    videoUrl: vid('Selenelatino4.webm'),
     youtubeId: '',
   },
   {
@@ -164,7 +164,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'SELENE — CHILL SESSION',
     desc: 'Low-energy set — Selene smooth transitions, OBS capture.',
     category: 'Presentations',
-    videoUrl: vid('presentations/selenetranqui1.webm'),
+    videoUrl: vid('Selenetranqui1.webm'),
     youtubeId: '',
   },
   {
@@ -181,7 +181,7 @@ export const DEMO_RECORDS: DemoRecord[] = [
     title: 'WHEELSMITH MODULE',
     desc: 'Wheelsmith parameter editor — UI walkthrough capture.',
     category: 'Demos & Shaders',
-    videoUrl: vid('demos-shaders/wheelsmith.webm'),
+    videoUrl: vid('Wheelsmith.webm'),
     youtubeId: '',
   },
   {
