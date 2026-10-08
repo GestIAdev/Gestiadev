@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "LuxSync",
     images: [
       {
-        url: "/luxsync/interpreted_vector_logo.png",
+        url: "/luxsync/og-cover.jpg",
         width: 1200,
         height: 630,
         alt: "LuxSync — Photonic Control Ecosystem",
@@ -51,8 +51,8 @@ export const metadata: Metadata = {
     title: "LuxSync — Photonic Control Ecosystem",
     description:
       "Premium photonic control ecosystem. Fluid physics, Radix-2 synchronization and the first cognitive DMX engine.",
-    images: ["/luxsync/interpreted_vector_logo.png"],
-    creator: "@luxsync",
+    images: ["/luxsync/og-cover.jpg"],
+    creator: "@gestiadev",
   },
   robots: {
     index: true,
